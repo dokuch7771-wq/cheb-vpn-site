@@ -1,0 +1,1173 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CHEB VPN — Быстро. Надёжно. Без ограничений.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;700&family=Onest:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080C10;
+    --bg2: #0D1318;
+    --bg3: #131B22;
+    --surface: #1A2430;
+    --border: rgba(255,255,255,0.06);
+    --border2: rgba(255,255,255,0.12);
+    --accent: #00D4FF;
+    --accent2: #0099CC;
+    --accent-dim: rgba(0,212,255,0.08);
+    --accent-glow: rgba(0,212,255,0.2);
+    --text: #F0F4F8;
+    --text2: #8A9BAD;
+    --text3: #4A5A6A;
+    --green: #00E584;
+    --green-dim: rgba(0,229,132,0.08);
+    --red: #FF5252;
+    --font-h: 'Unbounded', sans-serif;
+    --font-b: 'Onest', sans-serif;
+    --r: 14px;
+    --r-lg: 20px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-b);
+    font-size: 16px;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* ── NOISE TEXTURE ── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 0;
+  }
+
+  /* ── GLOW ORBS ── */
+  .orb { position: fixed; border-radius: 50%; filter: blur(120px); pointer-events: none; z-index: 0; }
+  .orb-1 { width: 600px; height: 600px; background: rgba(0,212,255,0.06); top: -200px; left: -100px; }
+  .orb-2 { width: 400px; height: 400px; background: rgba(0,229,132,0.04); bottom: 10%; right: -100px; }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
+    padding: 0 5%;
+    height: 68px;
+    background: rgba(8,12,16,0.8);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .nav-logo {
+    font-family: var(--font-h);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+    text-decoration: none;
+    display: flex; align-items: center; gap: 10px;
+    grid-column: 1;
+  }
+
+  .nav-logo-icon {
+    width: 32px; height: 32px;
+    background: linear-gradient(135deg, var(--accent), #0066AA);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+
+  .nav-links {
+    display: flex; align-items: center; gap: 32px;
+    list-style: none;
+    grid-column: 2; justify-self: center;
+  }
+
+  .nav-links a {
+    color: var(--text2);
+    text-decoration: none;
+    font-size: 14px;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--text); }
+
+  .nav-actions { display: flex; align-items: center; gap: 12px; justify-self: end; grid-column: 3; }
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 10px 22px;
+    border-radius: var(--r);
+    font-family: var(--font-b);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s;
+    border: none;
+  }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--text2);
+    border: 1px solid var(--border2);
+  }
+  .btn-ghost:hover { color: var(--text); border-color: var(--border2); background: var(--surface); }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #080C10;
+    font-weight: 700;
+  }
+  .btn-primary:hover { background: #33DDFF; transform: translateY(-1px); box-shadow: 0 8px 30px rgba(0,212,255,0.25); }
+
+  .btn-lg { padding: 14px 32px; font-size: 16px; border-radius: 16px; }
+
+  .btn-outline {
+    background: transparent;
+    color: var(--accent);
+    border: 1px solid rgba(0,212,255,0.3);
+  }
+  .btn-outline:hover { background: var(--accent-dim); border-color: var(--accent); }
+
+  /* ── HERO ── */
+  .hero {
+    position: relative; z-index: 1;
+    min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    text-align: center;
+    padding: 120px 5% 80px;
+  }
+
+  .hero-inner { max-width: 780px; }
+
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 6px 16px;
+    background: var(--accent-dim);
+    border: 1px solid rgba(0,212,255,0.2);
+    border-radius: 100px;
+    font-size: 13px;
+    color: var(--accent);
+    margin-bottom: 32px;
+    font-weight: 500;
+  }
+
+  .hero-badge-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  h1 {
+    font-family: var(--font-h);
+    font-size: clamp(36px, 6vw, 68px);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin-bottom: 24px;
+  }
+
+  h1 .accent { color: var(--accent); }
+
+  .hero-sub {
+    font-size: clamp(16px, 2vw, 20px);
+    color: var(--text2);
+    max-width: 560px;
+    margin: 0 auto 40px;
+    line-height: 1.6;
+    font-weight: 300;
+  }
+
+  .hero-actions {
+    display: flex; align-items: center; justify-content: center;
+    gap: 12px; flex-wrap: wrap;
+    margin-bottom: 56px;
+  }
+
+  .hero-stats {
+    display: flex; align-items: center; justify-content: center;
+    gap: 40px; flex-wrap: wrap;
+  }
+
+  .stat-item { text-align: center; }
+  .stat-value {
+    font-family: var(--font-h);
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text);
+    display: block;
+  }
+  .stat-label { font-size: 13px; color: var(--text3); }
+
+  .stat-sep { width: 1px; height: 40px; background: var(--border2); }
+
+  /* ── GRID LINES BG ── */
+  .hero::after {
+    content: '';
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 50%, black 20%, transparent 80%);
+    pointer-events: none;
+  }
+
+  /* ── SECTIONS ── */
+  section { position: relative; z-index: 1; }
+  .section-wrap { max-width: 1100px; margin: 0 auto; padding: 0 5%; }
+
+  .section-header { text-align: center; margin-bottom: 60px; }
+
+  h2 {
+    font-family: var(--font-h);
+    font-size: clamp(28px, 4vw, 44px);
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    margin-bottom: 16px;
+  }
+
+  .section-sub { font-size: 17px; color: var(--text2); max-width: 500px; margin: 0 auto; font-weight: 300; }
+
+  /* ── FEATURES ── */
+  .features { padding: 100px 0; }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    overflow: hidden;
+  }
+
+  .feature-card {
+    background: var(--bg2);
+    padding: 36px 32px;
+    transition: background 0.3s;
+  }
+  .feature-card:hover { background: var(--bg3); }
+
+  .feature-icon {
+    width: 48px; height: 48px;
+    border-radius: 12px;
+    background: var(--accent-dim);
+    border: 1px solid rgba(0,212,255,0.15);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+    margin-bottom: 20px;
+  }
+
+  .feature-title {
+    font-family: var(--font-h);
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+
+  .feature-desc { font-size: 14px; color: var(--text2); line-height: 1.6; }
+
+  /* ── PRICING ── */
+  .pricing { padding: 100px 0; background: var(--bg2); }
+
+  .pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+  }
+
+  .plan-card {
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: var(--r-lg);
+    padding: 32px 28px;
+    position: relative;
+    transition: all 0.3s;
+    cursor: pointer;
+  }
+  .plan-card:hover { border-color: rgba(0,212,255,0.25); transform: translateY(-4px); box-shadow: 0 20px 60px rgba(0,0,0,0.4); }
+
+  .plan-card.popular {
+    border-color: var(--accent);
+    background: linear-gradient(160deg, rgba(0,212,255,0.05) 0%, var(--bg3) 60%);
+  }
+
+  .popular-badge {
+    position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+    background: var(--accent);
+    color: #080C10;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 14px;
+    border-radius: 100px;
+    white-space: nowrap;
+    font-family: var(--font-b);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .plan-period {
+    font-size: 13px;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 500;
+    margin-bottom: 16px;
+  }
+
+  .plan-price {
+    font-family: var(--font-h);
+    font-size: 42px;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .plan-price sup { font-size: 20px; vertical-align: super; }
+
+  .plan-per-month { font-size: 13px; color: var(--text2); margin-bottom: 6px; }
+
+  .plan-saving {
+    display: inline-block;
+    font-size: 12px;
+    color: var(--green);
+    background: var(--green-dim);
+    border: 1px solid rgba(0,229,132,0.15);
+    padding: 3px 10px;
+    border-radius: 100px;
+    margin-bottom: 28px;
+    font-weight: 500;
+  }
+
+  .plan-divider { height: 1px; background: var(--border); margin-bottom: 24px; }
+
+  .plan-features { list-style: none; margin-bottom: 28px; }
+  .plan-features li {
+    font-size: 14px;
+    color: var(--text2);
+    padding: 5px 0;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .check { color: var(--green); font-size: 16px; }
+
+  /* ── INSTALL ── */
+  .install { padding: 100px 0; }
+
+  .os-tabs {
+    display: flex; gap: 8px;
+    margin-bottom: 40px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0;
+    flex-wrap: wrap;
+  }
+
+  .os-tab {
+    display: flex; align-items: center; gap: 8px;
+    padding: 12px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text2);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition: all 0.2s;
+    background: none;
+    border-left: none; border-right: none; border-top: none;
+    font-family: var(--font-b);
+  }
+  .os-tab:hover { color: var(--text); }
+  .os-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  .os-content { display: none; }
+  .os-content.active { display: block; }
+
+  .steps { display: flex; flex-direction: column; gap: 4px; }
+
+  .step {
+    display: flex; gap: 20px;
+    align-items: flex-start;
+    padding: 24px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    transition: border-color 0.2s;
+  }
+  .step:hover { border-color: var(--border2); }
+
+  .step-num {
+    width: 32px; height: 32px; min-width: 32px;
+    border-radius: 50%;
+    border: 1px solid var(--border2);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-h);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--accent);
+    margin-top: 2px;
+  }
+
+  .step-body h3 {
+    font-family: var(--font-b);
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .step-body p { font-size: 14px; color: var(--text2); }
+
+  .step-link {
+    display: inline-flex; align-items: center; gap: 6px;
+    margin-top: 10px;
+    padding: 7px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    font-size: 13px;
+    color: var(--accent);
+    text-decoration: none;
+    transition: all 0.2s;
+    font-weight: 500;
+  }
+  .step-link:hover { background: var(--accent-dim); border-color: rgba(0,212,255,0.3); }
+
+  /* ── FAQ ── */
+  .faq { padding: 100px 0; background: var(--bg2); }
+
+  .faq-list { max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; gap: 8px; }
+
+  .faq-item {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .faq-item.open { border-color: rgba(0,212,255,0.2); }
+
+  .faq-q {
+    width: 100%;
+    background: none; border: none;
+    padding: 20px 24px;
+    display: flex; align-items: center; justify-content: space-between;
+    cursor: pointer;
+    font-family: var(--font-b);
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text);
+    text-align: left;
+    gap: 16px;
+  }
+
+  .faq-arrow {
+    width: 20px; height: 20px; min-width: 20px;
+    border: 1px solid var(--border2);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px;
+    color: var(--text2);
+    transition: transform 0.3s, background 0.2s;
+  }
+  .faq-item.open .faq-arrow { transform: rotate(180deg); background: var(--accent-dim); color: var(--accent); border-color: rgba(0,212,255,0.3); }
+
+  .faq-a {
+    max-height: 0; overflow: hidden;
+    transition: max-height 0.3s ease;
+    padding: 0 24px;
+    font-size: 14px;
+    color: var(--text2);
+    line-height: 1.7;
+  }
+  .faq-item.open .faq-a { max-height: 300px; padding-bottom: 20px; }
+
+  /* ── CTA BANNER ── */
+  .cta-banner {
+    padding: 100px 0;
+    text-align: center;
+  }
+
+  .cta-card {
+    background: linear-gradient(135deg, rgba(0,212,255,0.08) 0%, rgba(0,229,132,0.04) 100%);
+    border: 1px solid rgba(0,212,255,0.15);
+    border-radius: 24px;
+    padding: 80px 40px;
+    max-width: 700px;
+    margin: 0 auto;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .cta-card::before {
+    content: '';
+    position: absolute;
+    top: -60px; left: 50%; transform: translateX(-50%);
+    width: 200px; height: 200px;
+    background: rgba(0,212,255,0.15);
+    border-radius: 50%;
+    filter: blur(80px);
+    pointer-events: none;
+  }
+
+  .cta-card h2 { margin-bottom: 16px; }
+  .cta-card p { color: var(--text2); margin-bottom: 32px; font-size: 17px; }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 40px 5%;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+    position: relative; z-index: 1;
+  }
+
+  .footer-logo {
+    font-family: var(--font-h);
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text2);
+    text-decoration: none;
+  }
+
+  .footer-links { display: flex; gap: 24px; flex-wrap: wrap; }
+  .footer-links a { font-size: 13px; color: var(--text3); text-decoration: none; transition: color 0.2s; }
+  .footer-links a:hover { color: var(--text2); }
+
+  .footer-copy { font-size: 13px; color: var(--text3); }
+
+  /* ── TELEGRAM WIDGET ── */
+  .tg-widget {
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 12px 20px;
+    background: rgba(42,171,238,0.1);
+    border: 1px solid rgba(42,171,238,0.2);
+    border-radius: var(--r);
+    color: #2AABEE;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s;
+  }
+  .tg-widget:hover { background: rgba(42,171,238,0.18); }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    nav { padding: 0 4%; }
+    .nav-links { display: none; }
+    .hero { padding: 100px 4% 60px; }
+    .stat-sep { display: none; }
+    .hero-stats { gap: 24px; }
+    .features-grid { grid-template-columns: 1fr; }
+    .pricing-grid { grid-template-columns: 1fr; }
+    .plan-card.popular { margin-top: 12px; }
+    footer { justify-content: center; text-align: center; }
+    .cta-card { padding: 48px 24px; }
+  }
+
+  @media (max-width: 640px) {
+    /* Навбар — лого слева, кнопки справа, без сетки */
+    nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 16px;
+    }
+
+    /* Кнопки — компактнее */
+    .nav-actions {
+      display: flex;
+      gap: 6px;
+    }
+    .nav-actions .btn {
+      padding: 8px 13px;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    /* Вторую кнопку скрываем по умолчанию — JS управляет классом */
+    .nav-actions .btn#nav-try {
+      display: none;
+    }
+  }
+
+  @media (max-width: 480px) {
+    /* Hero секция */
+    .hero {
+      padding-top: 96px;
+      padding-bottom: 56px;
+    }
+
+    /* Кнопки hero — колонкой */
+    .hero-actions {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .hero-actions .btn,
+    .hero-actions .tg-widget {
+      width: 100%;
+      text-align: center;
+      justify-content: center;
+    }
+
+    /* Статистика — компактнее */
+    .hero-stats { gap: 16px; }
+    .stat-value { font-size: 22px; }
+    .stat-label { font-size: 12px; }
+  }
+
+
+  .plan-card.selected {
+    border-color: var(--accent) !important;
+    background: linear-gradient(160deg, rgba(0,212,255,0.1) 0%, var(--bg3) 60%) !important;
+    box-shadow: 0 0 0 2px rgba(0,212,255,0.2), 0 20px 60px rgba(0,0,0,0.4);
+    transform: translateY(-4px);
+  }
+  .plan-card.selected .btn-outline {
+    background: var(--accent);
+    color: #080C10;
+    border-color: var(--accent);
+    font-weight: 700;
+  }
+  .login-toast {
+    position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+    background: var(--surface); border: 1px solid rgba(0,212,255,0.3);
+    color: var(--text); padding: 14px 28px; border-radius: 50px;
+    font-size: 14px; font-weight: 500; z-index: 999;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+    animation: toastIn 0.3s ease;
+    display: flex; align-items: center; gap: 10px;
+  }
+  @keyframes toastIn {
+    from { opacity:0; transform:translateX(-50%) translateY(16px); }
+    to   { opacity:1; transform:translateX(-50%) translateY(0); }
+  }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .hero-inner > * {
+    animation: fadeUp 0.7s ease both;
+  }
+  .hero-badge { animation-delay: 0.1s; }
+  h1 { animation-delay: 0.2s; }
+  .hero-sub { animation-delay: 0.3s; }
+  .hero-actions { animation-delay: 0.4s; }
+  .hero-stats { animation-delay: 0.5s; }
+</style>
+</head>
+<body>
+
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo">
+    <img src="data:image/png;base64,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" class="nav-logo-icon" style="width:38px;height:38px;border-radius:8px;object-fit:cover;background:none;" alt="CHEB VPN logo">
+    CHEB VPN
+  </a>
+  <ul class="nav-links">
+    <li><a href="#features">Преимущества</a></li>
+    <li><a href="#pricing">Тарифы</a></li>
+    <li><a href="#install">Установка</a></li>
+    <li><a href="#faq">FAQ</a></li>
+  </ul>
+  <div class="nav-actions">
+    <a href="/dashboard.html#login" class="btn btn-ghost" id="nav-login">Войти</a>
+    <a href="/dashboard.html#register?trial=true" class="btn btn-primary" id="nav-try">Попробовать 7 дней бесплатно</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-badge">
+      <span class="hero-badge-dot"></span>
+      Работает без Telegram · VLESS/XRay протокол
+    </div>
+
+    <h1>
+      Интернет без<br>
+      <span class="accent">ограничений</span><br>
+      и замедлений
+    </h1>
+
+    <p class="hero-sub">
+      Быстрый VPN на базе VLESS/XRay. Работает в России, обходит блокировки,
+      не требует Telegram для подключения.
+    </p>
+
+    <div class="hero-actions">
+      <a href="#pricing" class="btn btn-primary btn-lg" onclick="event.preventDefault();document.getElementById('pricing').scrollIntoView({behavior:'smooth'})">Подключить за 5 минут</a>
+      <a href="#pricing" class="btn btn-ghost btn-lg" onclick="event.preventDefault();document.getElementById('install').scrollIntoView({behavior:'smooth'})">Как это работает</a>
+    </div>
+
+    <div class="hero-stats">
+      <div class="stat-item">
+        <span class="stat-value">10 Гбит/с</span>
+        <span class="stat-label">Скорость сервера</span>
+      </div>
+      <div class="stat-sep"></div>
+      <div class="stat-item">
+        <span class="stat-value">99.9%</span>
+        <span class="stat-label">Аптайм</span>
+      </div>
+      <div class="stat-sep"></div>
+      <div class="stat-item">
+        <span class="stat-value">3 устройства</span>
+        <span class="stat-label">По одной подписке</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features" id="features">
+  <div class="section-wrap">
+    <div class="section-header">
+      <h2>Почему выбирают нас</h2>
+      <p class="section-sub">Никаких компромиссов между скоростью, безопасностью и удобством</p>
+    </div>
+
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">⚡</div>
+        <div class="feature-title">Молниеносная скорость</div>
+        <p class="feature-desc">Протокол VLESS без лишних обёрток. Минимальный оверхед, максимальная пропускная способность. Видео в 4K без буферизации.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🛡️</div>
+        <div class="feature-title">Невидим для блокировок</div>
+        <p class="feature-desc">XTLS/Reality — трафик выглядит как обычный HTTPS. Глубокая инспекция пакетов (DPI) не может отличить VPN от обычного сёрфинга.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🌍</div>
+        <div class="feature-title">Без Telegram</div>
+        <p class="feature-desc">Покупайте и настраивайте VPN прямо через этот сайт. Не нужно сначала открывать Telegram — который без VPN и недоступен.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📱</div>
+        <div class="feature-title">Все устройства</div>
+        <p class="feature-desc">Windows, macOS, Android, iOS — мы дадим ссылки на проверенные клиенты и пошаговые инструкции под каждую платформу. До 3 устройств по одной подписке.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔐</div>
+        <div class="feature-title">Нет логов</div>
+        <p class="feature-desc">Мы не храним историю вашего трафика. Никто не знает, что именно вы смотрите и скачиваете. Только зашифрованные байты.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">💳</div>
+        <div class="feature-title">Оплата картой РФ</div>
+        <p class="feature-desc">Принимаем карты Visa, Mastercard и МИР через ЮКасса. Автопродление по желанию. Чек на почту после оплаты.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="pricing" id="pricing">
+  <div class="section-wrap">
+    <div class="section-header">
+      <h2>Простые тарифы</h2>
+      <p class="section-sub">Чем дольше — тем выгоднее. Отмена в любое время.</p>
+    </div>
+
+    <div class="pricing-grid" style="grid-template-columns:repeat(auto-fit,minmax(260px,1fr));max-width:880px;margin:0 auto;">
+      <!-- 1 месяц -->
+      <div class="plan-card" onclick="selectCard(this, '1m')">
+        <div class="plan-period">1 месяц</div>
+        <div class="plan-price"><sup>₽</sup>159</div>
+        <div class="plan-per-month">159 ₽ / месяц</div>
+        <div class="plan-divider"></div>
+        <ul class="plan-features">
+          <li><span class="check">✓</span> 3 устройства</li>
+          <li><span class="check">✓</span> Безлимитный трафик</li>
+          <li><span class="check">✓</span> Скорость до 1 Гбит/с</li>
+          <li><span class="check">✓</span> Поддержка 24/7</li>
+        </ul>
+        <button class="btn btn-outline" style="width:100%;" onclick="handlePlanBtn(event, '1m')">Выбрать</button>
+      </div>
+
+      <!-- 2 месяца -->
+      <div class="plan-card popular" onclick="selectCard(this, '2m')">
+        <div class="popular-badge">Популярный</div>
+        <div class="plan-period">2 месяца</div>
+        <div class="plan-price"><sup>₽</sup>259</div>
+        <div class="plan-per-month">129 ₽ / месяц</div>
+        <div class="plan-saving">Экономия 18%</div>
+        <div class="plan-divider"></div>
+        <ul class="plan-features">
+          <li><span class="check">✓</span> 3 устройства</li>
+          <li><span class="check">✓</span> Безлимитный трафик</li>
+          <li><span class="check">✓</span> Скорость до 1 Гбит/с</li>
+          <li><span class="check">✓</span> Поддержка 24/7</li>
+        </ul>
+        <button class="btn btn-primary" style="width:100%;" onclick="handlePlanBtn(event, '2m')">Выбрать</button>
+      </div>
+
+      <!-- 3 месяца -->
+      <div class="plan-card" onclick="selectCard(this, '3m')">
+        <div class="plan-period">3 месяца</div>
+        <div class="plan-price"><sup>₽</sup>319</div>
+        <div class="plan-per-month">106 ₽ / месяц</div>
+        <div class="plan-saving">Экономия 33%</div>
+        <div class="plan-divider"></div>
+        <ul class="plan-features">
+          <li><span class="check">✓</span> 3 устройства</li>
+          <li><span class="check">✓</span> Безлимитный трафик</li>
+          <li><span class="check">✓</span> Скорость до 1 Гбит/с</li>
+          <li><span class="check">✓</span> Поддержка 24/7</li>
+        </ul>
+        <button class="btn btn-outline" style="width:100%;" onclick="handlePlanBtn(event, '3m')">Выбрать</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- INSTALL -->
+<section class="install" id="install">
+  <div class="section-wrap">
+    <div class="section-header">
+      <h2>Установка за 3 шага</h2>
+      <p class="section-sub">Выберите вашу платформу и следуйте инструкции</p>
+    </div>
+
+    <div class="os-tabs">
+      <button class="os-tab active" onclick="switchTab('windows')">🪟 Windows</button>
+      <button class="os-tab" onclick="switchTab('ios')">📱 iOS / macOS</button>
+      <button class="os-tab" onclick="switchTab('android')">🤖 Android</button>
+    </div>
+
+    <!-- Windows -->
+    <div class="os-content active" id="tab-windows">
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <h3>Скачайте и установите Hiddify</h3>
+            <p>Бесплатный клиент с поддержкой VLESS/XRay. Простой интерфейс, работает на Windows.</p>
+            <a href="https://cloud.mail.ru/public/MzQk/QJVvvgY6j" target="_blank" class="step-link">
+              ↓ Скачать Hiddify
+            </a>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <h3>Добавьте ключ</h3>
+            <p>Скопируйте ключ из личного кабинета → в Hiddify нажмите <strong>«+»</strong> → <strong>«Добавить из буфера обмена»</strong> → вставьте ключ → нажмите <strong>«Подключить»</strong>.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <h3>Подключитесь</h3>
+            <p>Нажмите кнопку включения в Hiddify. Готово!</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- iOS / macOS -->
+    <div class="os-content" id="tab-ios">
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <h3>Установите Happ из App Store</h3>
+            <p>Работает на iPhone и Mac — одно приложение для обоих устройств.</p>
+            <a href="https://apps.apple.com/ru/app/happ-proxy-utility-plus/id6746188973" target="_blank" class="step-link">↓ Happ в App Store</a>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <h3>Импортируйте ключ</h3>
+            <p>Нажмите <strong>«+»</strong> → <strong>«Импорт из буфера обмена»</strong> (или отсканируйте QR из кабинета).</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <h3>Подключитесь</h3>
+            <p>Разрешите добавить VPN-профиль → включите переключатель. Готово!</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Android -->
+    <div class="os-content" id="tab-android">
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <h3>Установите v2RayTun</h3>
+            <p>Скачайте APK по ссылке и установите (разрешите установку из неизвестных источников в настройках).</p>
+            <a href="https://github.com/DigneZzZ/v2raytun/releases/download/5.19.64/v2RayTun_universal.apk" target="_blank" class="step-link">↓ Скачать v2RayTun APK</a>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <h3>Импортируйте ключ</h3>
+            <p>Нажмите <strong>«+»</strong> → <strong>«Импорт из буфера»</strong> — или отсканируйте QR-код из кабинета.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <h3>Подключитесь</h3>
+            <p>Нажмите кнопку <strong>▶</strong> для подключения. Значок ключа появится в статус-баре.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="faq" id="faq">
+  <div class="section-wrap">
+    <div class="section-header">
+      <h2>Часто задаваемые вопросы</h2>
+    </div>
+
+    <div class="faq-list">
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          Зачем VPN, если у меня уже есть другой?
+          <span class="faq-arrow">▾</span>
+        </button>
+        <div class="faq-a">VLESS/XRay намного сложнее заблокировать, чем OpenVPN или WireGuard. Российский регулятор блокирует именно по «отпечаткам» протоколов, а XRay маскируется под обычный HTTPS-трафик.</div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          Сколько устройств можно подключить?
+          <span class="faq-arrow">▾</span>
+        </button>
+        <div class="faq-a">На одну подписку — до 3 устройств одновременно. Это, например, компьютер, смартфон и планшет.</div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          Как получить конфигурацию после оплаты?
+          <span class="faq-arrow">▾</span>
+        </button>
+        <div class="faq-a">Сразу после оплаты в вашем личном кабинете появится строка vless://... и QR-код. Их можно импортировать в любой совместимый клиент. Доступ выдаётся автоматически — без ожидания.</div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          Какой способ оплаты принимаете?
+          <span class="faq-arrow">▾</span>
+        </button>
+        <div class="faq-a">Банковские карты Visa, Mastercard и МИР — через платёжный сервис ЮКасса. Оплата безопасна, вы получаете электронный чек. Также есть Telegram-бот, если вам удобнее.</div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          Можно ли вернуть деньги, если не подойдёт?
+          <span class="faq-arrow">▾</span>
+        </button>
+        <div class="faq-a">Да. В течение 3 дней после первой оплаты — полный возврат без вопросов. Пишите в поддержку или в Telegram-бот.</div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          Хранятся ли логи моего трафика?
+          <span class="faq-arrow">▾</span>
+        </button>
+        <div class="faq-a">Нет. Мы не ведём логи запросов, не передаём данные третьим лицам. Система хранит только: email, дату оплаты, статус подписки — без информации о посещённых сайтах.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-banner">
+  <div class="section-wrap">
+    <div class="cta-card">
+      <h2>Готовы начать?</h2>
+      <p>Подключайтесь прямо сейчас — без Telegram, без ожидания.<br>Работает через 5 минут.</p>
+      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+        <a href="#pricing" class="btn btn-primary btn-lg" onclick="event.preventDefault();document.getElementById('pricing').scrollIntoView({behavior:'smooth'})">Выбрать тариф</a>
+        <a href="https://t.me/your_bot" target="_blank" class="tg-widget">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.88 13.668l-2.96-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.834.947-.001-.001-.001-.001 0 0z"/></svg>
+          Открыть Telegram бот
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <a href="#" class="footer-logo">CHEB VPN</a>
+  <div class="footer-links">
+    <a href="/privacy">Политика конфиденциальности</a>
+    <a href="/terms">Пользовательское соглашение</a>
+    <a href="https://t.me/your_support">Поддержка</a>
+  </div>
+  <div class="footer-copy">© 2025 CHEB VPN. Все права защищены.</div>
+</footer>
+
+<script>
+  function switchTab(os) {
+    document.querySelectorAll('.os-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.os-content').forEach(c => c.classList.remove('active'));
+    event.currentTarget.classList.add('active');
+    document.getElementById('tab-' + os).classList.add('active');
+  }
+
+  function toggleFaq(btn) {
+    const item = btn.parentElement;
+    const isOpen = item.classList.contains('open');
+    document.querySelectorAll('.faq-item.open').forEach(i => i.classList.remove('open'));
+    if (!isOpen) item.classList.add('open');
+  }
+
+  function selectCard(card, plan) {
+    document.querySelectorAll('.plan-card').forEach(c => {
+      c.classList.remove('selected');
+      const btn = c.querySelector('button');
+      if (btn) btn.textContent = 'Выбрать';
+    });
+    card.classList.add('selected');
+    card.dataset.plan = plan;
+  }
+
+  function handlePlanBtn(event, plan) {
+    event.stopPropagation();
+    const card = event.target.closest('.plan-card');
+    if (!card.classList.contains('selected')) {
+      selectCard(card, plan);
+      return;
+    }
+    window.location.href = '/dashboard.html#checkout?plan=' + plan;
+  }
+
+  function showLoginNotice() {
+    window.location.href = '/dashboard.html#login';
+  }
+
+  function showToast(msg, isSuccess) {
+    const existing = document.querySelector('.login-toast');
+    if (existing) existing.remove();
+    const t = document.createElement('div');
+    t.className = 'login-toast';
+    t.innerHTML = (isSuccess ? '<span style="color:var(--green)">✓</span> ' : '<span style="color:var(--accent)">ℹ</span> ') + msg;
+    document.body.appendChild(t);
+    setTimeout(() => { t.style.opacity='0'; t.style.transition='opacity 0.4s'; setTimeout(()=>t.remove(),400); }, 2800);
+  }
+
+  // ── Referral: save ref code from URL and show banner ──────────────────────
+  (function() {
+    const params = new URLSearchParams(window.location.search);
+    const ref = params.get('ref');
+    if (ref) {
+      localStorage.setItem('cheb_ref', ref.toUpperCase());
+      showRefBanner();
+    }
+  })();
+
+  // ── Smart nav buttons by auth status ──────────────────────────────────────
+  async function updateNavButtons() {
+    const token = localStorage.getItem('chebvpn_token');
+    const loginBtn = document.getElementById('nav-login');
+    const tryBtn = document.getElementById('nav-try');
+    const isMobile = window.innerWidth < 640;
+
+    if (!token) {
+      // Не авторизован: на мобильном скрываем вторую кнопку, показываем только "Войти"
+      if (isMobile) {
+        tryBtn.style.display = 'none';
+        loginBtn.textContent = 'Войти';
+      }
+      return;
+    }
+    try {
+      const res = await fetch('/api/me', { headers: { 'Authorization': 'Bearer ' + token } });
+      if (!res.ok) { localStorage.removeItem('chebvpn_token'); return; }
+      const subRes = await fetch('/api/subscription', { headers: { 'Authorization': 'Bearer ' + token } });
+      const sub = subRes.ok ? await subRes.json() : null;
+      const hasSub = sub && sub.is_active;
+
+      // "Войти" → "Мой кабинет"
+      loginBtn.textContent = 'Мой кабинет';
+      loginBtn.href = '/dashboard.html#dashboard';
+
+      if (isMobile) {
+        // На мобильном — только одна кнопка "Мой кабинет"
+        tryBtn.style.display = 'none';
+      } else {
+        tryBtn.style.display = '';
+        if (hasSub) {
+          tryBtn.textContent = '🎁 Пригласить друга';
+          tryBtn.href = '/dashboard.html#referral';
+        } else {
+          tryBtn.textContent = 'Попробовать бесплатно';
+          tryBtn.href = '/dashboard.html#trial-offer';
+        }
+      }
+    } catch (e) { /* silent — keep default buttons */ }
+  }
+  updateNavButtons();
+
+  function showRefBanner() {
+    if (document.getElementById('ref-banner')) return;
+    const banner = document.createElement('div');
+    banner.id = 'ref-banner';
+    banner.style.cssText = [
+      'position:relative',
+      'z-index:50',
+      'background:linear-gradient(90deg,rgba(0,212,255,0.12),rgba(0,229,132,0.08))',
+      'border-bottom:1px solid rgba(0,212,255,0.2)',
+      'padding:10px 16px',
+      'text-align:center',
+      "font-family:'Onest',sans-serif",
+      'font-size:13px',
+      'color:#F0F4F8',
+      'line-height:1.4',
+      'margin-top:68px',
+    ].join(';');
+    banner.innerHTML = '<span style="font-size:15px">🎁</span> Вас пригласил друг — при регистрации получите <strong style="color:#00D4FF">+7 дней</strong> бесплатно' +
+      '<button onclick="this.parentElement.remove()" style="background:none;border:none;color:#4A5A6A;font-size:16px;cursor:pointer;margin-left:8px;vertical-align:middle;line-height:1;">×</button>';
+    // Вставляем сразу после навбара
+    const nav = document.querySelector('nav');
+    if (nav && nav.nextSibling) {
+      nav.parentNode.insertBefore(banner, nav.nextSibling);
+    } else {
+      document.body.appendChild(banner);
+    }
+    // Подстраиваем hero под высоту баннера
+    const hero = document.querySelector('.hero');
+    if (hero) {
+      hero.style.paddingTop = (120 + banner.offsetHeight) + 'px';
+      banner.addEventListener('click', function(e) {
+        if (e.target.tagName === 'BUTTON') {
+          hero.style.paddingTop = '';
+        }
+      });
+    }
+  }
+</script>
+</body>
+</html>

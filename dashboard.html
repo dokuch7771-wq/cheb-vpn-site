@@ -1,0 +1,2386 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CHEB VPN — Личный кабинет</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;700&family=Onest:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080C10;
+    --bg2: #0D1318;
+    --bg3: #131B22;
+    --surface: #1A2430;
+    --border: rgba(255,255,255,0.06);
+    --border2: rgba(255,255,255,0.12);
+    --accent: #00D4FF;
+    --accent2: #0099CC;
+    --accent-dim: rgba(0,212,255,0.08);
+    --accent-glow: rgba(0,212,255,0.2);
+    --text: #F0F4F8;
+    --text2: #8A9BAD;
+    --text3: #4A5A6A;
+    --green: #00E584;
+    --green-dim: rgba(0,229,132,0.08);
+    --red: #FF5252;
+    --font-h: 'Unbounded', sans-serif;
+    --font-b: 'Onest', sans-serif;
+    --r: 14px;
+    --r-lg: 20px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-b);
+    font-size: 16px;
+    line-height: 1.7;
+    overflow-x: hidden;
+    min-height: 100vh;
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 0;
+  }
+
+  .orb { position: fixed; border-radius: 50%; filter: blur(120px); pointer-events: none; z-index: 0; }
+  .orb-1 { width: 600px; height: 600px; background: rgba(0,212,255,0.06); top: -200px; left: -100px; }
+  .orb-2 { width: 400px; height: 400px; background: rgba(0,229,132,0.04); bottom: 10%; right: -100px; }
+
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 5%;
+    height: 68px;
+    background: rgba(8,12,16,0.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-logo {
+    font-family: var(--font-h);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+    text-decoration: none;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .nav-logo svg { width: 28px; height: 28px; }
+  .nav-right { display: flex; align-items: center; gap: 12px; }
+  #nav-email { color: var(--text2); font-size: 14px; }
+  .btn-logout {
+    background: transparent;
+    border: 1px solid var(--border2);
+    color: var(--text2);
+    padding: 6px 16px;
+    border-radius: 8px;
+    font-family: var(--font-b);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-logout:hover { border-color: var(--accent); color: var(--accent); }
+
+  .container {
+    position: relative; z-index: 1;
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 100px 24px 60px;
+  }
+
+  /* ── PAGES ── */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ── AUTH ── */
+  .auth-wrap {
+    max-width: 420px;
+    margin: 40px auto;
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: var(--r-lg);
+    padding: 40px;
+  }
+  .auth-tabs { display: flex; gap: 0; margin-bottom: 32px; }
+  .auth-tab {
+    flex: 1;
+    padding: 10px;
+    text-align: center;
+    font-family: var(--font-h);
+    font-size: 13px;
+    cursor: pointer;
+    border-bottom: 2px solid var(--border);
+    color: var(--text2);
+    transition: all 0.2s;
+  }
+  .auth-tab.active { border-bottom-color: var(--accent); color: var(--accent); }
+  .auth-form { display: none; }
+  .auth-form.active { display: block; }
+
+  .field { margin-bottom: 18px; }
+  .field label { display: block; font-size: 13px; color: var(--text2); margin-bottom: 6px; }
+  .field input {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: var(--r);
+    padding: 12px 16px;
+    color: var(--text);
+    font-family: var(--font-b);
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .field input:focus { border-color: var(--accent); }
+
+  .btn-primary {
+    width: 100%;
+    background: var(--accent);
+    color: #000;
+    border: none;
+    border-radius: var(--r);
+    padding: 13px;
+    font-family: var(--font-h);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    margin-top: 4px;
+  }
+  .btn-primary:hover { opacity: 0.85; }
+  .btn-primary:disabled { opacity: 0.5; cursor: default; }
+
+  .auth-error {
+    background: rgba(255,82,82,0.1);
+    border: 1px solid rgba(255,82,82,0.3);
+    border-radius: var(--r);
+    padding: 10px 14px;
+    color: var(--red);
+    font-size: 14px;
+    margin-bottom: 16px;
+    display: none;
+  }
+
+  /* ── DASHBOARD ── */
+  .section-title {
+    font-family: var(--font-h);
+    font-size: 14px;
+    color: var(--text2);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 16px;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: var(--r-lg);
+    padding: 28px;
+    margin-bottom: 20px;
+  }
+
+  .status-row {
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 16px;
+  }
+  .status-info h2 {
+    font-family: var(--font-h);
+    font-size: 20px;
+    margin-bottom: 6px;
+  }
+  .status-info .sub-detail { color: var(--text2); font-size: 15px; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 12px;
+    border-radius: 100px;
+    font-size: 13px;
+    font-weight: 500;
+  }
+  .badge-green { background: var(--green-dim); color: var(--green); }
+  .badge-gray { background: rgba(255,255,255,0.05); color: var(--text2); }
+  .badge::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+
+  .btn-renew {
+    background: var(--accent-dim);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    padding: 10px 22px;
+    border-radius: var(--r);
+    font-family: var(--font-h);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    display: inline-block;
+  }
+  .btn-renew:hover { background: var(--accent); color: #000; }
+
+  /* VPN config block */
+  .config-grid {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 24px;
+    align-items: start;
+  }
+  @media (max-width: 600px) { .config-grid { grid-template-columns: 1fr; } }
+
+  .qr-box {
+    width: 140px; height: 140px;
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .qr-box img { width: 100%; height: 100%; object-fit: contain; }
+  .qr-placeholder { width: 140px; height: 140px; background: var(--bg3); border-radius: 10px; }
+
+  .config-info .config-label { font-size: 13px; color: var(--text2); margin-bottom: 6px; }
+  .config-string {
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: var(--r);
+    padding: 10px 14px;
+    font-family: monospace;
+    font-size: 12px;
+    color: var(--accent);
+    word-break: break-all;
+    margin-bottom: 12px;
+  }
+  .config-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+  .btn-action {
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    padding: 8px 16px;
+    border-radius: var(--r);
+    font-family: var(--font-b);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-action:hover { border-color: var(--accent); color: var(--accent); }
+
+  .instruction-links { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+  .instr-btn {
+    background: var(--accent-dim);
+    border: 1px solid rgba(0,212,255,0.2);
+    color: var(--accent);
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .instr-btn:hover { background: rgba(0,212,255,0.15); }
+
+  /* Payments */
+  .payments-list { display: flex; flex-direction: column; gap: 10px; }
+  .payment-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 18px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+  }
+  .payment-item .p-date { color: var(--text2); font-size: 14px; }
+  .payment-item .p-plan { font-weight: 500; }
+  .payment-item .p-amount { color: var(--accent); font-weight: 600; }
+  .payment-item .p-status {
+    font-size: 12px;
+    padding: 3px 10px;
+    border-radius: 100px;
+  }
+  .p-status.succeeded { background: var(--green-dim); color: var(--green); }
+  .p-status.pending { background: rgba(255,200,0,0.1); color: #FFC800; }
+  .p-status.canceled { background: rgba(255,82,82,0.1); color: var(--red); }
+
+  .empty-state { color: var(--text2); font-size: 15px; text-align: center; padding: 20px 0; }
+
+  /* ── CHECKOUT ── */
+  .plans-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .plan-card {
+    background: var(--surface);
+    border: 2px solid var(--border2);
+    border-radius: var(--r-lg);
+    padding: 24px 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+    position: relative;
+  }
+  .plan-card:hover { border-color: var(--accent); }
+  .plan-card.selected { border-color: var(--accent); background: var(--accent-dim); }
+  .plan-card .plan-badge {
+    position: absolute; top: -10px; left: 50%; transform: translateX(-50%);
+    background: var(--accent); color: #000;
+    font-family: var(--font-h); font-size: 10px; font-weight: 700;
+    padding: 2px 10px; border-radius: 100px;
+  }
+  .plan-label {
+    font-family: var(--font-h);
+    font-size: 15px;
+    margin-bottom: 10px;
+    color: var(--text);
+  }
+  .plan-price {
+    font-family: var(--font-h);
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--accent);
+  }
+  .plan-price span { font-size: 16px; }
+  .plan-permonth { font-size: 13px; color: var(--text2); margin-top: 4px; }
+
+  #pay-error {
+    background: rgba(255,82,82,0.1);
+    border: 1px solid rgba(255,82,82,0.3);
+    border-radius: var(--r);
+    padding: 10px 14px;
+    color: var(--red);
+    font-size: 14px;
+    margin-bottom: 16px;
+    display: none;
+  }
+
+  .spinner {
+    display: inline-block;
+    width: 16px; height: 16px;
+    border: 2px solid rgba(0,0,0,0.3);
+    border-top-color: #000;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    vertical-align: middle;
+    margin-right: 6px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .no-sub-msg {
+    text-align: center;
+    padding: 30px 0;
+    color: var(--text2);
+  }
+  .no-sub-msg a { color: var(--accent); text-decoration: none; }
+  .no-sub-msg a:hover { text-decoration: underline; }
+
+  /* ── Phone auth ── */
+  .phone-input-wrap {
+    display: flex; gap: 8px;
+  }
+  .phone-prefix {
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: var(--r);
+    padding: 12px 14px;
+    color: var(--text2);
+    font-family: var(--font-b);
+    font-size: 15px;
+    white-space: nowrap;
+  }
+  .code-input {
+    display: flex; gap: 8px; justify-content: center;
+    margin-bottom: 16px;
+  }
+  .code-input input {
+    width: 52px; height: 56px;
+    text-align: center;
+    font-family: var(--font-h);
+    font-size: 22px;
+    background: var(--bg3);
+    border: 2px solid var(--border2);
+    border-radius: var(--r);
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .code-input input:focus { border-color: var(--accent); }
+  .resend-wrap { text-align: center; margin-bottom: 14px; font-size: 14px; color: var(--text2); }
+  .btn-resend {
+    background: none; border: none; color: var(--accent);
+    font-family: var(--font-b); font-size: 14px;
+    cursor: pointer; text-decoration: underline;
+  }
+  .btn-resend:disabled { color: var(--text3); text-decoration: none; cursor: default; }
+
+  /* ── Referral block ── */
+  .ref-bonus-row {
+    display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;
+  }
+  .ref-bonus-card {
+    flex: 1; min-width: 130px;
+    background: var(--accent-dim);
+    border: 1px solid rgba(0,212,255,0.2);
+    border-radius: var(--r);
+    padding: 16px;
+    text-align: center;
+  }
+  .ref-bonus-days {
+    font-family: var(--font-h);
+    font-size: 28px;
+    color: var(--accent);
+    font-weight: 700;
+  }
+  .ref-bonus-label { font-size: 13px; color: var(--text2); margin-top: 4px; }
+  .ref-link-row {
+    display: flex; gap: 0; margin-bottom: 20px;
+    border: 1px solid var(--border2);
+    border-radius: var(--r);
+    overflow: hidden;
+  }
+  .ref-link-url {
+    flex: 1;
+    background: var(--bg3);
+    padding: 12px 16px;
+    font-size: 14px;
+    color: var(--accent);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-family: monospace;
+  }
+  .btn-copy-ref {
+    background: var(--accent);
+    border: none;
+    color: #000;
+    padding: 12px 18px;
+    font-family: var(--font-h);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: opacity 0.2s;
+  }
+  .btn-copy-ref:hover { opacity: 0.85; }
+  .ref-stats-row {
+    display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;
+  }
+  .ref-stat {
+    flex: 1; min-width: 100px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    padding: 14px 12px;
+    text-align: center;
+  }
+  .ref-stat-num {
+    font-family: var(--font-h);
+    font-size: 22px;
+    color: var(--text);
+    font-weight: 600;
+  }
+  .ref-stat-label { font-size: 12px; color: var(--text2); margin-top: 4px; }
+  .ref-history { display: flex; flex-direction: column; gap: 8px; }
+  .ref-history-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 14px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    font-size: 14px;
+  }
+  .ref-history-item .rh-date { color: var(--text2); }
+  .ref-history-item .rh-days { color: var(--accent); font-weight: 600; }
+  .ref-history-item .rh-ok { color: var(--green); }
+
+  /* ── DASHBOARD TABS ── */
+  .dash-tabs {
+    display: flex; gap: 0;
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    border-radius: var(--r);
+    padding: 4px;
+    margin-bottom: 24px;
+    overflow-x: auto;
+  }
+  .dash-tab {
+    flex: 1; min-width: max-content;
+    padding: 10px 14px;
+    text-align: center;
+    font-family: var(--font-h);
+    font-size: 12px;
+    cursor: pointer;
+    border-radius: 10px;
+    color: var(--text2);
+    transition: all 0.2s;
+    white-space: nowrap;
+    user-select: none;
+  }
+  .dash-tab.active { background: var(--surface); color: var(--text); }
+  .dash-tab:hover:not(.active) { color: var(--text); }
+  .dash-panel { display: none; }
+  .dash-panel.active { display: block; }
+
+  /* ── TRIAL BANNER ── */
+  .trial-banner {
+    background: linear-gradient(135deg, var(--accent-dim), rgba(0,229,132,0.08));
+    border: 1px solid rgba(0,212,255,0.2);
+    border-radius: var(--r);
+    padding: 16px 20px;
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 15px;
+  }
+  .trial-banner strong { color: var(--accent); }
+
+  /* ── MOBILE PAYMENTS CARDS ── */
+  /* ── MOBILE TABS ── */
+  @media (max-width: 640px) {
+    .dash-tabs {
+      -webkit-mask-image: linear-gradient(to right, black 75%, transparent 100%);
+      mask-image: linear-gradient(to right, black 75%, transparent 100%);
+      padding-bottom: 2px;
+      scrollbar-width: none;
+    }
+    .dash-tabs::-webkit-scrollbar { display: none; }
+    .dash-tabs.scrolled-end {
+      -webkit-mask-image: none;
+      mask-image: none;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .dash-tab {
+      padding: 9px 10px;
+      font-size: 11px;
+      flex-shrink: 0;
+    }
+  }
+
+  /* ── MOBILE GENERAL ── */
+  @media (max-width: 480px) {
+    .container { padding: 88px 12px 48px; }
+    .auth-wrap { padding: 24px 20px; margin: 24px auto; }
+    .card { padding: 16px; }
+  }
+
+  @media (max-width: 600px) {
+    .payments-table { display: none; }
+    .payments-cards { display: flex; flex-direction: column; gap: 10px; }
+    .payment-card {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 14px 16px;
+    }
+    .payment-card-row {
+      display: flex; justify-content: space-between;
+      font-size: 14px; padding: 4px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .payment-card-row:last-child { border-bottom: none; }
+    .payment-card-label { color: var(--text2); }
+  }
+  @media (min-width: 601px) {
+    .payments-cards { display: none; }
+    .payments-table { display: flex; flex-direction: column; gap: 10px; }
+  }
+
+  /* ── INSTRUCTION MODAL ── */
+  .instr-modal-overlay {
+    display: none;
+    position: fixed; inset: 0; z-index: 200;
+    background: rgba(8,12,16,0.85);
+    backdrop-filter: blur(6px);
+    align-items: center; justify-content: center;
+    padding: 20px;
+  }
+  .instr-modal-overlay.open { display: flex; }
+  .instr-modal {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: var(--r-lg);
+    padding: 32px;
+    max-width: min(520px, calc(100vw - 32px));
+    width: 100%;
+    box-sizing: border-box;
+    max-height: 90vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    position: relative;
+  }
+  @media (max-width: 480px) {
+    .instr-modal { padding: 20px 16px; }
+  }
+  .instr-modal h3 {
+    font-family: var(--font-h);
+    font-size: 18px;
+    margin-bottom: 20px;
+  }
+  .instr-close {
+    position: absolute; top: 16px; right: 16px;
+    background: none; border: none;
+    color: var(--text2); font-size: 22px;
+    cursor: pointer; line-height: 1;
+  }
+  .instr-close:hover { color: var(--text); }
+  .instr-step { display: flex; gap: 14px; margin-bottom: 18px; }
+  .instr-step-num {
+    width: 28px; height: 28px; min-width: 28px;
+    background: var(--accent-dim);
+    border: 1px solid rgba(0,212,255,0.3);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-h); font-size: 12px; color: var(--accent);
+  }
+  .instr-step-body h4 { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+  .instr-step-body p { font-size: 13px; color: var(--text2); }
+  .instr-step-body a { color: var(--accent); text-decoration: none; font-size: 13px; }
+  .instr-step-body a:hover { text-decoration: underline; }
+  .instr-key-block {
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: var(--r);
+    padding: 12px;
+    margin-bottom: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    overflow: hidden;
+    min-width: 0;
+    box-sizing: border-box;
+    width: 100%;
+  }
+  .instr-key-text {
+    font-family: monospace;
+    font-size: 12px;
+    color: var(--accent);
+    word-break: break-all;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+    line-height: 1.6;
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+  .btn-instr-copy {
+    background: var(--accent); color: #000;
+    border: none; border-radius: 8px;
+    padding: 9px 14px; font-family: var(--font-h);
+    font-size: 12px; font-weight: 700; cursor: pointer;
+    width: 100%; box-sizing: border-box;
+  }
+  .btn-instr-copy:hover { opacity: 0.85; }
+  .instr-qr { text-align: center; margin-bottom: 16px; }
+  .instr-qr img { width: 100%; max-width: 200px; height: auto; background: white; border-radius: 8px; display: block; margin: 0 auto; }
+
+  /* ── SETTINGS ── */
+  .settings-field { margin-bottom: 18px; }
+  .settings-field label { display: block; font-size: 13px; color: var(--text2); margin-bottom: 6px; }
+  .settings-field input {
+    width: 100%;
+    background: var(--bg3); border: 1px solid var(--border2);
+    border-radius: var(--r); padding: 12px 16px;
+    color: var(--text); font-family: var(--font-b); font-size: 15px;
+    outline: none; transition: border-color 0.2s;
+  }
+  .settings-field input:focus { border-color: var(--accent); }
+  .settings-field .field-hint { font-size: 12px; color: var(--text3); margin-top: 4px; }
+  .btn-save {
+    background: var(--accent); color: #000;
+    border: none; border-radius: var(--r);
+    padding: 11px 24px; font-family: var(--font-h);
+    font-size: 13px; font-weight: 700; cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .btn-save:hover { opacity: 0.85; }
+  .btn-danger {
+    background: rgba(255,82,82,0.1);
+    border: 1px solid rgba(255,82,82,0.3);
+    color: var(--red);
+    border-radius: var(--r); padding: 11px 24px;
+    font-family: var(--font-h); font-size: 13px;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .btn-danger:hover { background: rgba(255,82,82,0.2); }
+  .save-ok {
+    display: none;
+    color: var(--green); font-size: 13px; margin-top: 8px;
+  }
+  /* ── New auth method cards (Блок 1) ── */
+  .auth-main-title {
+    font-family: var(--font-h); font-size: 19px;
+    text-align: center; margin-bottom: 24px;
+  }
+  .auth-method-card {
+    display: flex; align-items: center; gap: 14px;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: var(--r);
+    padding: 16px 18px;
+    cursor: pointer; transition: border-color 0.2s;
+    margin-bottom: 12px;
+  }
+  .auth-method-card:hover { border-color: var(--accent); }
+  .auth-method-icon { font-size: 22px; flex-shrink: 0; }
+  .auth-method-info { flex: 1; }
+  .auth-method-name { font-size: 15px; font-weight: 500; }
+  .auth-method-badge {
+    display: inline-block;
+    background: var(--accent); color: #000;
+    font-family: var(--font-h); font-size: 9px; font-weight: 700;
+    padding: 1px 7px; border-radius: 100px;
+    vertical-align: middle; margin-left: 6px;
+  }
+  .auth-method-desc { font-size: 13px; color: var(--text2); margin-top: 2px; }
+  .auth-method-arrow { color: var(--text3); font-size: 20px; }
+  .auth-divider {
+    text-align: center; color: var(--text3); font-size: 13px;
+    margin: 16px 0 12px;
+  }
+  .btn-email-fallback {
+    background: none; border: none;
+    color: var(--text2); font-family: var(--font-b);
+    font-size: 13px; cursor: pointer; text-decoration: underline;
+  }
+  .btn-email-fallback:hover { color: var(--text); }
+  .auth-back-btn {
+    background: none; border: none;
+    color: var(--text2); font-family: var(--font-b);
+    font-size: 13px; cursor: pointer;
+    margin-bottom: 20px; padding: 0;
+    display: flex; align-items: center; gap: 4px;
+  }
+  .auth-back-btn:hover { color: var(--text); }
+
+  /* ── No-sub card (Блок 2) ── */
+  .nosub-card {
+    text-align: center; padding: 12px 0 4px;
+  }
+  .nosub-icon { font-size: 40px; margin-bottom: 12px; }
+  .nosub-card h3 {
+    font-family: var(--font-h); font-size: 16px; margin-bottom: 10px;
+  }
+  .nosub-card p {
+    font-size: 14px; color: var(--text2);
+    margin-bottom: 20px; line-height: 1.6;
+  }
+  .btn-outline {
+    width: 100%; background: transparent;
+    border: 1px solid var(--border2); color: var(--text);
+    border-radius: var(--r); padding: 12px;
+    font-family: var(--font-h); font-size: 13px; font-weight: 600;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ── Telegram link / login screens (Блоки 3, 7) ── */
+  .tg-screen { text-align: center; padding: 4px 0; }
+  .tg-screen-icon { font-size: 48px; margin-bottom: 16px; }
+  .tg-screen h3 {
+    font-family: var(--font-h); font-size: 18px; margin-bottom: 10px;
+  }
+  .tg-screen p { font-size: 14px; color: var(--text2); margin-bottom: 20px; line-height: 1.6; }
+  .tg-code-box {
+    background: var(--bg3); border: 1px solid rgba(0,212,255,0.3);
+    border-radius: var(--r); padding: 18px 24px; margin: 20px 0;
+  }
+  .tg-code-label { font-size: 12px; color: var(--text2); margin-bottom: 8px; }
+  .tg-code-text {
+    font-family: monospace; font-size: 28px; color: var(--accent);
+    font-weight: 700; letter-spacing: 0.15em;
+  }
+  .tg-steps {
+    text-align: left; font-size: 14px; color: var(--text2);
+    line-height: 2; margin: 16px 0;
+  }
+  .tg-steps strong { color: var(--text); }
+  .tg-waiting { font-size: 13px; color: var(--text2); margin-top: 16px; }
+
+  /* ── Linked accounts ── */
+  .linked-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 0; border-bottom: 1px solid var(--border);
+  }
+  .linked-row:last-child { border-bottom: none; }
+  .linked-icon { font-size: 20px; width: 28px; text-align: center; flex-shrink: 0; }
+  .linked-info { flex: 1; }
+  .linked-name { font-size: 14px; font-weight: 500; }
+  .linked-status { font-size: 12px; color: var(--text2); margin-top: 2px; }
+  .linked-status.ok { color: var(--green); }
+  .btn-link-acct {
+    background: none; border: 1px solid var(--border2);
+    border-radius: 8px; padding: 6px 14px;
+    color: var(--text); font-family: var(--font-b); font-size: 12px;
+    cursor: pointer; white-space: nowrap; flex-shrink: 0;
+  }
+  .btn-link-acct:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-link-acct.linked { border-color: var(--green); color: var(--green); cursor: default; }
+</style>
+</head>
+<body>
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+
+<nav>
+  <a href="/" class="nav-logo">
+    <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="16" cy="16" r="15" stroke="#00D4FF" stroke-width="1.5"/>
+      <path d="M8 16 C8 10, 16 6, 16 6 C16 6, 24 10, 24 16 C24 22, 16 26, 16 26 C16 26, 8 22, 8 16Z" stroke="#00D4FF" stroke-width="1.2" fill="none"/>
+      <line x1="8" y1="16" x2="24" y2="16" stroke="#00D4FF" stroke-width="1.2"/>
+      <ellipse cx="16" cy="16" rx="4.5" ry="10" stroke="#00D4FF" stroke-width="1.2" fill="none"/>
+    </svg>
+    CHEB VPN
+  </a>
+  <div class="nav-right">
+    <span id="nav-email"></span>
+    <button class="btn-logout" onclick="logout()">Выйти</button>
+  </div>
+</nav>
+
+<div class="container">
+
+  <!-- LOGIN PAGE -->
+  <div class="page" id="page-login">
+    <div class="auth-wrap">
+
+      <!-- ── ЭКРАН 1: выбор способа (показывается по умолчанию) ── -->
+      <div id="auth-methods-screen">
+        <h2 class="auth-main-title">Войти в CHEB VPN</h2>
+
+        <!-- Телефон — главный способ -->
+        <div class="auth-method-card" onclick="showAuthMethod('phone')">
+          <div class="auth-method-icon">📱</div>
+          <div class="auth-method-info">
+            <div class="auth-method-name">Номер телефона <span class="auth-method-badge">ГЛАВНЫЙ</span></div>
+            <div class="auth-method-desc">Код придёт в SMS</div>
+          </div>
+          <div class="auth-method-arrow">›</div>
+        </div>
+
+        <!-- Telegram -->
+        <div class="auth-method-card" onclick="startTelegramLogin()">
+          <div class="auth-method-icon">✈️</div>
+          <div class="auth-method-info">
+            <div class="auth-method-name">Через Telegram</div>
+            <div class="auth-method-desc">Если уже есть подписка</div>
+          </div>
+          <div class="auth-method-arrow">›</div>
+        </div>
+
+        <div class="auth-divider">─── или ───</div>
+
+        <div style="text-align:center;">
+          <button class="btn-email-fallback" onclick="showAuthMethod('email')">Войти с email и паролем →</button>
+        </div>
+      </div>
+
+      <!-- ── ЭКРАН 2: телефон ── -->
+      <div id="auth-phone-screen" style="display:none;">
+        <button class="auth-back-btn" onclick="showAuthMethods()">← Назад</button>
+        <div class="auth-error" id="phone-error"></div>
+
+        <div id="phone-step1">
+          <div class="field">
+            <label>Номер телефона</label>
+            <div class="phone-input-wrap">
+              <div class="phone-prefix">+7</div>
+              <input type="tel" id="phone-number" placeholder="999 123-45-67"
+                maxlength="15" autocomplete="tel"
+                oninput="this.value=this.value.replace(/[^\d\s\-\(\)]/g,'')"
+                onkeydown="if(event.key==='Enter')sendCode()">
+            </div>
+          </div>
+          <button class="btn-primary" id="btn-send-code" onclick="sendCode()">Получить код</button>
+        </div>
+
+        <div id="phone-step2" style="display:none">
+          <p style="font-size:14px;color:var(--text2);margin-bottom:20px;text-align:center;">Введите код из SMS</p>
+          <div class="code-input" id="code-boxes">
+            <input type="tel" maxlength="1" inputmode="numeric" oninput="codeInput(this,0)" onkeydown="codeKey(event,0)">
+            <input type="tel" maxlength="1" inputmode="numeric" oninput="codeInput(this,1)" onkeydown="codeKey(event,1)">
+            <input type="tel" maxlength="1" inputmode="numeric" oninput="codeInput(this,2)" onkeydown="codeKey(event,2)">
+            <input type="tel" maxlength="1" inputmode="numeric" oninput="codeInput(this,3)" onkeydown="codeKey(event,3)">
+          </div>
+          <div class="resend-wrap">
+            <span id="resend-timer"></span>
+            <button class="btn-resend" id="btn-resend" onclick="sendCode(true)" disabled>Отправить ещё раз</button>
+          </div>
+          <button class="btn-primary" id="btn-verify" onclick="verifyCode()">Войти</button>
+          <button style="width:100%;background:none;border:none;color:var(--text2);font-family:var(--font-b);font-size:13px;cursor:pointer;margin-top:12px;" onclick="resetPhoneForm()">← Изменить номер</button>
+        </div>
+      </div>
+
+      <!-- ── ЭКРАН 3: email/пароль (скрыт, открывается по ссылке) ── -->
+      <div id="auth-email-screen" style="display:none;">
+        <button class="auth-back-btn" onclick="showAuthMethods()">← Назад</button>
+
+        <div class="auth-tabs">
+          <div class="auth-tab active" id="etab-login" onclick="switchEmailTab('login')">Войти</div>
+          <div class="auth-tab" id="etab-register" onclick="switchEmailTab('register')">Регистрация</div>
+        </div>
+
+        <!-- Login form -->
+        <div id="form-login" class="auth-form active">
+          <div class="auth-error" id="login-error"></div>
+          <div class="field">
+            <label>Email</label>
+            <input type="email" id="login-email" placeholder="you@example.com" autocomplete="email">
+          </div>
+          <div class="field">
+            <label>Пароль</label>
+            <input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password">
+          </div>
+          <button class="btn-primary" id="btn-login" onclick="doLogin()">Войти</button>
+          <button type="button" style="background:none;border:none;color:var(--text2);font-family:var(--font-b);font-size:13px;cursor:pointer;margin-top:12px;width:100%;text-align:center;" onclick="switchEmailTab('forgot')">
+            Забыли пароль?
+          </button>
+        </div>
+
+        <!-- Forgot password form -->
+        <div id="form-forgot" class="auth-form">
+          <div style="font-size:14px;color:var(--text2);margin-bottom:20px;">Введите email — мы пришлём ссылку для сброса пароля</div>
+          <div class="auth-error" id="forgot-error"></div>
+          <div class="auth-success" id="forgot-success" style="display:none;color:var(--green);font-size:14px;margin-bottom:16px;padding:12px;background:var(--green-dim);border-radius:var(--r);"></div>
+          <div class="field">
+            <label>Email</label>
+            <input type="email" id="forgot-email" placeholder="you@example.com" autocomplete="email">
+          </div>
+          <button class="btn-primary" id="btn-forgot" onclick="doForgotPassword()">Отправить ссылку</button>
+          <button type="button" style="background:none;border:none;color:var(--text2);font-family:var(--font-b);font-size:13px;cursor:pointer;margin-top:12px;width:100%;text-align:center;" onclick="switchEmailTab('login')">
+            ← Назад к входу
+          </button>
+        </div>
+
+        <!-- Register form -->
+        <div id="form-register" class="auth-form">
+          <div class="trial-banner" id="trial-reg-banner" style="display:none;">
+            🎁 Зарегистрируйся и получи <strong>7 дней бесплатно</strong>
+          </div>
+          <div class="auth-error" id="register-error"></div>
+          <div class="field">
+            <label>Email</label>
+            <input type="email" id="reg-email" placeholder="you@example.com" autocomplete="email">
+          </div>
+          <div class="field">
+            <label>Пароль</label>
+            <input type="password" id="reg-pass" placeholder="минимум 8 символов" autocomplete="new-password">
+          </div>
+          <div class="field">
+            <label>Повторите пароль</label>
+            <input type="password" id="reg-pass2" placeholder="повторите пароль" autocomplete="new-password">
+          </div>
+          <button class="btn-primary" id="btn-register" onclick="doRegister()">Создать аккаунт</button>
+        </div>
+      </div>
+
+      <!-- ── ЭКРАН 4: вход через Telegram (заполняется JS) ── -->
+      <div id="auth-telegram-screen" style="display:none;"></div>
+
+    </div>
+  </div>
+
+  <!-- DASHBOARD PAGE -->
+  <div class="page" id="page-dashboard">
+
+    <!-- Tab navigation -->
+    <div class="dash-tabs">
+      <div class="dash-tab active" id="dtab-key" onclick="switchDashTab('key')">🔑 Мой ключ</div>
+      <div class="dash-tab" id="dtab-history" onclick="switchDashTab('history')">📋 История</div>
+      <div class="dash-tab" id="dtab-referral" onclick="switchDashTab('referral')">🎁 Реферальная</div>
+      <div class="dash-tab" id="dtab-settings" onclick="switchDashTab('settings')">⚙️ Настройки</div>
+    </div>
+
+    <!-- ── Tab: Мой ключ ── -->
+    <div class="dash-panel active" id="panel-key">
+      <!-- Status card -->
+      <div class="card" id="sub-card">
+        <div class="status-row">
+          <div class="status-info">
+            <h2 id="dash-greeting">Привет!</h2>
+            <div class="sub-detail" id="dash-sub-detail">Загрузка...</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+            <span class="badge badge-gray" id="sub-badge">—</span>
+            <a href="#checkout" class="btn-renew" onclick="navigate('checkout')">Купить / продлить</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- VPN Config -->
+      <div id="config-section">
+        <div class="section-title">Ваша конфигурация VPN</div>
+        <div class="card">
+          <div id="config-content">
+            <div class="no-sub-msg">
+              Конфигурация появится после оплаты.<br>
+              <a href="#checkout" onclick="navigate('checkout')">Выбрать тариф →</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Tab: История ── -->
+    <div class="dash-panel" id="panel-history">
+      <div class="section-title">История платежей</div>
+      <div class="card">
+        <!-- Desktop table -->
+        <div class="payments-table" id="payments-table">
+          <div class="empty-state">Загрузка...</div>
+        </div>
+        <!-- Mobile cards -->
+        <div class="payments-cards" id="payments-cards"></div>
+      </div>
+    </div>
+
+    <!-- ── Tab: Реферальная программа ── -->
+    <div class="dash-panel" id="panel-referral">
+      <div class="section-title">Реферальная программа</div>
+      <div class="card">
+        <p style="color:var(--text2);font-size:14px;margin-bottom:20px;">
+          Приглашай друзей — вы оба получите бонусные дни
+        </p>
+        <div class="ref-bonus-row">
+          <div class="ref-bonus-card">
+            <div class="ref-bonus-days">+7</div>
+            <div class="ref-bonus-label">дней тебе</div>
+          </div>
+          <div class="ref-bonus-card">
+            <div class="ref-bonus-days">+7</div>
+            <div class="ref-bonus-label">дней другу</div>
+          </div>
+        </div>
+
+        <div style="font-size:13px;color:var(--text2);margin-bottom:8px;">Твоя реферальная ссылка:</div>
+        <div class="ref-link-row">
+          <div class="ref-link-url" id="ref-link-url">Загрузка...</div>
+          <button class="btn-copy-ref" id="btn-copy-ref" onclick="copyRefLink()">Скопировать</button>
+        </div>
+
+        <div class="ref-stats-row">
+          <div class="ref-stat">
+            <div class="ref-stat-num" id="ref-invited">—</div>
+            <div class="ref-stat-label">Приглашено</div>
+          </div>
+          <div class="ref-stat">
+            <div class="ref-stat-num" id="ref-earned">—</div>
+            <div class="ref-stat-label">Заработано дней</div>
+          </div>
+        </div>
+
+        <div id="ref-history-wrap" style="display:none">
+          <div style="font-size:13px;color:var(--text2);margin-bottom:10px;">История приглашений:</div>
+          <div class="ref-history" id="ref-history"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Tab: Настройки ── -->
+    <div class="dash-panel" id="panel-settings">
+      <div class="section-title">Настройки аккаунта</div>
+      <div class="card">
+        <div class="settings-field">
+          <label>Email</label>
+          <input type="text" id="settings-email" readonly style="opacity:0.7;cursor:default;">
+        </div>
+        <div class="settings-field">
+          <label>Telegram username</label>
+          <input type="text" id="settings-tg" placeholder="@username" autocomplete="off">
+          <div class="field-hint">Для получения уведомлений о подписке</div>
+        </div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;">
+          <button class="btn-save" onclick="saveSettings()">Сохранить</button>
+          <span class="save-ok" id="save-ok">✓ Сохранено</span>
+        </div>
+      </div>
+
+      <!-- Способы входа -->
+      <div class="section-title" style="margin-top:24px;">Способы входа</div>
+      <div class="card" id="linked-accounts-card">
+        <div id="linked-accounts-list">
+          <!-- Filled by renderLinkedAccounts() -->
+        </div>
+
+        <!-- Phone binding inline form -->
+        <div id="phone-bind-wrap" style="display:none;margin-top:16px;border-top:1px solid var(--border);padding-top:16px;">
+          <div style="font-size:13px;color:var(--text2);margin-bottom:12px;">Введите номер телефона для привязки</div>
+          <div class="auth-error" id="bind-phone-error"></div>
+          <div id="bind-phone-step1">
+            <div class="field">
+              <div class="phone-input-wrap">
+                <div class="phone-prefix">+7</div>
+                <input type="tel" id="bind-phone-number" placeholder="999 123-45-67" maxlength="15"
+                  oninput="this.value=this.value.replace(/[^\d\s\-\(\)]/g,'')"
+                  onkeydown="if(event.key==='Enter')bindSendCode()">
+              </div>
+            </div>
+            <button class="btn-save" onclick="bindSendCode()">Получить SMS</button>
+            <button type="button" style="background:none;border:none;color:var(--text2);font-size:13px;cursor:pointer;margin-left:12px;" onclick="closeBind()">Отмена</button>
+          </div>
+          <div id="bind-phone-step2" style="display:none">
+            <p style="font-size:13px;color:var(--text2);margin-bottom:12px;">Введите код из SMS</p>
+            <div class="code-input" id="bind-code-boxes">
+              <input type="tel" maxlength="1" inputmode="numeric" oninput="bindCodeInput(this,0)" onkeydown="bindCodeKey(event,0)">
+              <input type="tel" maxlength="1" inputmode="numeric" oninput="bindCodeInput(this,1)" onkeydown="bindCodeKey(event,1)">
+              <input type="tel" maxlength="1" inputmode="numeric" oninput="bindCodeInput(this,2)" onkeydown="bindCodeKey(event,2)">
+              <input type="tel" maxlength="1" inputmode="numeric" oninput="bindCodeInput(this,3)" onkeydown="bindCodeKey(event,3)">
+            </div>
+            <button class="btn-save" style="margin-top:12px;" onclick="bindVerifyCode()">Подтвердить</button>
+            <button type="button" style="background:none;border:none;color:var(--text2);font-size:13px;cursor:pointer;margin-left:12px;" onclick="closeBind()">Отмена</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:16px;">
+        <button class="btn-danger" onclick="logout()" style="width:100%;">Выйти из аккаунта</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- CHECKOUT PAGE -->
+  <div class="page" id="page-checkout">
+    <div style="max-width:680px;margin:0 auto;">
+      <h2 style="font-family:var(--font-h);font-size:22px;margin-bottom:8px;">Выберите тариф</h2>
+      <p style="color:var(--text2);margin-bottom:28px;">Безлимитный трафик · 3 устройства · VLESS Reality</p>
+
+      <div class="plans-grid">
+        <div class="plan-card" id="plan-1m" onclick="selectPlan('1m')">
+          <div class="plan-label">1 месяц</div>
+          <div class="plan-price">159<span>₽</span></div>
+          <div class="plan-permonth">159 ₽/мес</div>
+        </div>
+        <div class="plan-card selected" id="plan-2m" onclick="selectPlan('2m')">
+          <div class="plan-badge">ВЫГОДНО</div>
+          <div class="plan-label">2 месяца</div>
+          <div class="plan-price">259<span>₽</span></div>
+          <div class="plan-permonth">129 ₽/мес</div>
+        </div>
+        <div class="plan-card" id="plan-3m" onclick="selectPlan('3m')">
+          <div class="plan-label">3 месяца</div>
+          <div class="plan-price">319<span>₽</span></div>
+          <div class="plan-permonth">106 ₽/мес</div>
+        </div>
+      </div>
+
+      <div id="pay-error"></div>
+
+      <button class="btn-primary" id="btn-pay" onclick="doPay()" style="max-width:340px;">
+        Оплатить картой через ЮКасса →
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<!-- Instruction modal -->
+<div class="instr-modal-overlay" id="instr-overlay" onclick="closeInstrModal(event)">
+  <div class="instr-modal">
+    <button class="instr-close" onclick="closeInstrModal()">×</button>
+    <h3 id="instr-title">Инструкция</h3>
+    <div class="instr-key-block" id="instr-key-block">
+      <span class="instr-key-text" id="instr-key-text"></span>
+      <button class="btn-instr-copy" onclick="copyConfig()" style="width:100%;">Скопировать ключ</button>
+    </div>
+    <div class="instr-qr" id="instr-qr-wrap">
+      <img id="instr-qr-img" alt="QR-код" style="display:none;">
+    </div>
+    <div id="instr-steps"></div>
+    <div id="instr-extra-link" style="margin-top:12px;text-align:center;"></div>
+  </div>
+</div>
+
+<script>
+// Save referral code from URL on any page load
+(function() {
+  const params = new URLSearchParams(window.location.search);
+  const ref = params.get('ref');
+  if (ref) {
+    localStorage.setItem('cheb_ref', ref.toUpperCase());
+  }
+})();
+
+const API = '';  // same origin
+let selectedPlan = '2m';
+let currentUser = null;
+let _phoneNormalized = '';
+let _resendTimer = null;
+
+// ── Routing ───────────────────────────────────────────────────────────────────
+function navigate(page) {
+  window.location.hash = page;
+}
+
+function renderPage() {
+  // Parse hash and hash-embedded params: e.g. #register?trial=true
+  const rawHash = window.location.hash.replace('#', '') || 'login';
+  const [hash, hashQuery] = rawHash.split('?');
+  const hashParams = new URLSearchParams(hashQuery || '');
+  const token = localStorage.getItem('chebvpn_token');
+
+  if (!token && hash !== 'login' && hash !== 'register') {
+    // Save trial flag so it survives redirect to login
+    if (hashParams.get('trial') === 'true') sessionStorage.setItem('cheb_trial', '1');
+    showPage('login');
+    showAuthMethods();
+    return;
+  }
+
+  if (hash === 'login') {
+    if (token) { navigate('dashboard'); return; }
+    showPage('login');
+    showAuthMethods();
+  } else if (hash === 'register') {
+    if (token) { navigate('dashboard'); return; }
+    const isTrial = hashParams.get('trial') === 'true' || sessionStorage.getItem('cheb_trial') === '1';
+    showPage('login');
+    switchTab('register');
+    // Show trial banner
+    const banner = document.getElementById('trial-reg-banner');
+    if (banner) banner.style.display = isTrial ? 'block' : 'none';
+    if (isTrial) sessionStorage.setItem('cheb_trial', '1');
+  } else if (hash === 'dashboard' || hash === '') {
+    showPage('dashboard');
+    switchDashTab('key');
+    loadDashboard();
+  } else if (hash === 'referral') {
+    showPage('dashboard');
+    switchDashTab('referral');
+    loadDashboard();
+  } else if (hash === 'settings') {
+    showPage('dashboard');
+    switchDashTab('settings');
+    loadDashboard();
+  } else if (hash === 'trial-offer') {
+    showPage('dashboard');
+    switchDashTab('key');
+    loadDashboard().then(showTrialOfferOverlay);
+  } else if (hash === 'checkout') {
+    const planParam = new URLSearchParams(window.location.search).get('plan');
+    if (planParam) selectPlan(planParam);
+    showPage('checkout');
+  } else {
+    showPage('dashboard');
+    switchDashTab('key');
+    loadDashboard();
+  }
+}
+
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  if (name === 'login') {
+    document.querySelector('nav .nav-right').style.display = 'none';
+  } else {
+    document.querySelector('nav .nav-right').style.display = 'flex';
+  }
+}
+
+window.addEventListener('hashchange', renderPage);
+window.addEventListener('load', renderPage);
+
+// ── API ───────────────────────────────────────────────────────────────────────
+async function apiFetch(path, opts = {}) {
+  const token = localStorage.getItem('chebvpn_token');
+  const headers = { 'Content-Type': 'application/json', ...(opts.headers || {}) };
+  if (token) headers['Authorization'] = 'Bearer ' + token;
+  const res = await fetch(API + path, { ...opts, headers });
+  if (res.status === 401) {
+    localStorage.removeItem('chebvpn_token');
+    navigate('login');
+    throw new Error('Unauthorized');
+  }
+  return res;
+}
+
+// ── Dashboard tabs ─────────────────────────────────────────────────────────────
+function switchDashTab(tab) {
+  ['key','history','referral','settings'].forEach(t => {
+    const tabEl = document.getElementById('dtab-' + t);
+    const panelEl = document.getElementById('panel-' + t);
+    if (tabEl) tabEl.classList.toggle('active', t === tab);
+    if (panelEl) panelEl.classList.toggle('active', t === tab);
+  });
+}
+
+// ── Mobile tabs: fade indicator + scroll hint ──────────────────────────────
+(function() {
+  const tabsEl = document.querySelector('.dash-tabs');
+  if (!tabsEl) return;
+
+  // Remove fade mask when scrolled to end
+  tabsEl.addEventListener('scroll', function() {
+    const atEnd = this.scrollLeft + this.clientWidth >= this.scrollWidth - 4;
+    this.classList.toggle('scrolled-end', atEnd);
+  }, { passive: true });
+
+  // Show hint once on mobile
+  if (window.innerWidth <= 640 && !localStorage.getItem('tabs_hint_shown')) {
+    const hint = document.createElement('div');
+    hint.style.cssText = 'text-align:center;font-size:12px;color:var(--text3);padding:4px 0 2px;';
+    hint.textContent = '← листайте вкладки →';
+    tabsEl.parentNode.insertBefore(hint, tabsEl.nextSibling);
+    localStorage.setItem('tabs_hint_shown', '1');
+    setTimeout(() => hint.remove(), 4000);
+  }
+})();
+
+// ── Auth navigation ────────────────────────────────────────────────────────────
+function _hideAllAuthScreens() {
+  ['auth-methods-screen','auth-phone-screen','auth-email-screen','auth-telegram-screen']
+    .forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
+}
+
+function showAuthMethods() {
+  _hideAllAuthScreens();
+  document.getElementById('auth-methods-screen').style.display = 'block';
+  resetPhoneForm();
+}
+
+function showAuthMethod(method) {
+  _hideAllAuthScreens();
+  if (method === 'phone') {
+    document.getElementById('auth-phone-screen').style.display = 'block';
+    setTimeout(() => { const inp = document.getElementById('phone-number'); if(inp) inp.focus(); }, 50);
+  } else if (method === 'email') {
+    document.getElementById('auth-email-screen').style.display = 'block';
+    switchEmailTab('login');
+  }
+}
+
+function switchEmailTab(tab) {
+  ['login','register','forgot'].forEach(t => {
+    const tabEl = document.getElementById('etab-' + t);
+    const formEl = document.getElementById('form-' + t);
+    if (tabEl) tabEl.classList.toggle('active', t === tab);
+    if (formEl) formEl.classList.toggle('active', t === tab);
+  });
+}
+
+// Legacy alias used by renderPage() for register/trial flow
+function switchTab(tab) {
+  if (tab === 'phone') { showAuthMethod('phone'); return; }
+  if (tab === 'login') { showAuthMethod('email'); switchEmailTab('login'); return; }
+  if (tab === 'register') { showAuthMethod('email'); switchEmailTab('register'); return; }
+  if (tab === 'forgot') { showAuthMethod('email'); switchEmailTab('forgot'); return; }
+}
+
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  const errEl = document.getElementById('login-error');
+  const btn = document.getElementById('btn-login');
+  errEl.style.display = 'none';
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Входим...';
+  try {
+    const res = await fetch(API + '/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password: pass }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || 'Ошибка входа');
+    localStorage.setItem('chebvpn_token', data.access_token);
+    navigate('dashboard');
+  } catch (e) {
+    errEl.textContent = e.message;
+    errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Войти';
+  }
+}
+
+async function doRegister() {
+  const email = document.getElementById('reg-email').value.trim();
+  const pass = document.getElementById('reg-pass').value;
+  const pass2 = document.getElementById('reg-pass2').value;
+  const errEl = document.getElementById('register-error');
+  const btn = document.getElementById('btn-register');
+  errEl.style.display = 'none';
+  if (pass.length < 8) { errEl.textContent = 'Пароль должен быть минимум 8 символов'; errEl.style.display = 'block'; return; }
+  if (pass !== pass2) { errEl.textContent = 'Пароли не совпадают'; errEl.style.display = 'block'; return; }
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Создаём...';
+  try {
+    const ref_code = localStorage.getItem('cheb_ref') || null;
+    const trial = sessionStorage.getItem('cheb_trial') === '1';
+    const res = await fetch(API + '/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password: pass, ref_code, trial }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      if (data.detail === 'Email already registered') {
+        // Switch to login form and pre-fill email
+        showAuthMethod('email');
+        switchEmailTab('login');
+        document.getElementById('login-email').value = email;
+        const lErr = document.getElementById('login-error');
+        lErr.textContent = 'Этот email уже зарегистрирован. Введите пароль для входа.';
+        lErr.style.display = 'block';
+        return;
+      }
+      throw new Error(data.detail || 'Ошибка регистрации');
+    }
+    localStorage.setItem('chebvpn_token', data.access_token);
+    localStorage.removeItem('cheb_ref');
+    const wasTrialRequested = trial;
+    sessionStorage.removeItem('cheb_trial');
+    if (wasTrialRequested && data.trial_created) {
+      navigate('dashboard');
+      setTimeout(showTrialSuccess, 400);
+    } else {
+      navigate('dashboard');
+      setTimeout(showSaveAccessOverlay, 400);
+    }
+  } catch (e) {
+    errEl.textContent = e.message;
+    errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Создать аккаунт';
+  }
+}
+
+function showSaveAccessOverlay() {
+  if (document.getElementById('save-access-overlay')) return;
+  const overlay = document.createElement('div');
+  overlay.id = 'save-access-overlay';
+  overlay.style.cssText = `
+    position:fixed;inset:0;z-index:9999;
+    background:rgba(8,12,16,0.97);
+    display:flex;flex-direction:column;
+    align-items:center;justify-content:center;
+    text-align:center;padding:32px;
+    font-family:'Onest',sans-serif;
+  `;
+  overlay.innerHTML = `
+    <div style="font-size:56px;margin-bottom:20px;">🔐</div>
+    <h2 style="font-family:'Unbounded',sans-serif;font-size:22px;color:#F0F4F8;margin-bottom:10px;">
+      Не потеряйте доступ
+    </h2>
+    <p style="color:#8A9BAD;font-size:14px;max-width:360px;margin-bottom:28px;">
+      Привяжите Telegram — это быстрый способ входа<br>и перенос подписки из бота
+    </p>
+    <div style="display:flex;flex-direction:column;gap:10px;width:100%;max-width:320px;margin-bottom:20px;">
+      <button onclick="closeSaveAccessOverlay();switchDashTab('settings');" style="display:flex;align-items:center;gap:12px;background:rgba(0,136,204,0.15);border:1px solid rgba(0,136,204,0.3);border-radius:12px;padding:14px 20px;color:#F0F4F8;font-family:'Onest',sans-serif;font-size:14px;cursor:pointer;">
+        <span style="font-size:20px;">✈️</span> Привязать Telegram
+      </button>
+    </div>
+    <button onclick="closeSaveAccessOverlay()" style="background:none;border:none;color:#4A5A6A;font-family:'Onest',sans-serif;font-size:13px;cursor:pointer;padding:8px;">
+      Пропустить →
+    </button>
+  `;
+  document.body.appendChild(overlay);
+}
+
+function closeSaveAccessOverlay() {
+  const el = document.getElementById('save-access-overlay');
+  if (el) el.remove();
+}
+
+function comingSoonToast(name) {
+  showDashToast(name + ': скоро будет доступно');
+}
+
+function showDashToast(msg) {
+  const existing = document.querySelector('.dash-toast');
+  if (existing) existing.remove();
+  const t = document.createElement('div');
+  t.className = 'dash-toast';
+  t.style.cssText = `
+    position:fixed;bottom:28px;left:50%;transform:translateX(-50%);
+    background:#1A2430;border:1px solid rgba(0,212,255,0.3);
+    border-radius:10px;padding:10px 20px;
+    color:#F0F4F8;font-family:'Onest',sans-serif;font-size:14px;
+    z-index:10000;white-space:nowrap;
+  `;
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => { t.style.opacity='0'; t.style.transition='opacity 0.4s'; setTimeout(()=>t.remove(),400); }, 2500);
+}
+
+function showTrialSuccess() {
+  const overlay = document.createElement('div');
+  overlay.id = 'trial-success-overlay';
+  overlay.style.cssText = `
+    position: fixed; inset: 0; z-index: 9999;
+    background: rgba(8,12,16,0.97);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center; padding: 32px;
+    font-family: 'Onest', sans-serif;
+  `;
+  overlay.innerHTML = `
+    <div id="trial-anim" style="font-size:72px;margin-bottom:24px;">🔓</div>
+    <h2 style="font-family:'Unbounded',sans-serif;font-size:28px;color:#F0F4F8;margin-bottom:12px;">
+      Доступ получен!
+    </h2>
+    <p style="color:#8A9BAD;font-size:16px;max-width:380px;margin-bottom:8px;">
+      7 дней бесплатного VPN активированы.
+    </p>
+    <p style="color:#00D4FF;font-size:14px;margin-bottom:40px;">
+      Ваш ключ уже готов в личном кабинете
+    </p>
+    <div style="
+      background:rgba(0,212,255,0.1);
+      border:1px solid rgba(0,212,255,0.3);
+      border-radius:16px;
+      padding:16px 32px;
+      color:#00D4FF;
+      font-size:14px;
+      margin-bottom:40px;
+    ">
+      ✓ Подписка активна до <strong id="trial-expires"></strong>
+    </div>
+    <button id="trial-success-btn" style="
+      background:#00D4FF; color:#080C10;
+      border:none; border-radius:14px;
+      padding:14px 40px;
+      font-family:'Unbounded',sans-serif;
+      font-size:15px; font-weight:700;
+      cursor:pointer;
+    ">
+      Перейти в кабинет →
+    </button>
+  `;
+  document.body.appendChild(overlay);
+
+  overlay.querySelector('#trial-success-btn').addEventListener('click', function() {
+    const el = document.getElementById('trial-success-overlay');
+    if (el) document.body.removeChild(el);
+  });
+
+  const d = new Date();
+  d.setDate(d.getDate() + 7);
+  overlay.querySelector('#trial-expires').textContent =
+    d.toLocaleDateString('ru-RU', {day:'numeric', month:'long'});
+
+  const icon = overlay.querySelector('#trial-anim');
+  setTimeout(() => { icon.style.transform = 'scale(1.3)'; icon.style.transition = '0.3s'; }, 100);
+  setTimeout(() => { icon.style.transform = 'scale(1)'; }, 400);
+  setTimeout(() => { icon.textContent = '✅'; }, 600);
+}
+
+// ── Trial offer overlay ───────────────────────────────────────────────────────
+function showTrialOfferOverlay() {
+  if (document.getElementById('trial-offer-overlay')) return;
+
+  const overlay = document.createElement('div');
+  overlay.id = 'trial-offer-overlay';
+  overlay.style.cssText = `
+    position:fixed;inset:0;z-index:9999;
+    background:rgba(8,12,16,0.97);
+    display:flex;flex-direction:column;
+    align-items:center;justify-content:center;
+    text-align:center;padding:32px;
+    font-family:'Onest',sans-serif;
+  `;
+
+  const alreadyUsed = currentUser && currentUser.had_trial;
+
+  if (alreadyUsed) {
+    overlay.innerHTML = `
+      <div style="font-size:48px;margin-bottom:20px;">⏳</div>
+      <h2 style="font-family:'Unbounded',sans-serif;font-size:20px;color:#F0F4F8;margin-bottom:12px;">
+        Пробный период уже использован
+      </h2>
+      <p style="color:#8A9BAD;font-size:14px;max-width:360px;margin-bottom:28px;">
+        Вы уже активировали 7 бесплатных дней. Выберите тариф для продолжения.
+      </p>
+      <button onclick="document.getElementById('trial-offer-overlay').remove();navigate('checkout');"
+        style="background:#00D4FF;color:#080C10;border:none;border-radius:14px;
+        padding:14px 40px;font-family:'Unbounded',sans-serif;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:12px;">
+        Выбрать тариф →
+      </button>
+      <button onclick="document.getElementById('trial-offer-overlay').remove();navigate('dashboard');"
+        style="background:none;border:none;color:#4A5A6A;font-family:'Onest',sans-serif;font-size:13px;cursor:pointer;padding:8px;">
+        Закрыть
+      </button>
+    `;
+  } else {
+    overlay.innerHTML = `
+      <div style="font-size:56px;margin-bottom:20px;">🎁</div>
+      <h2 style="font-family:'Unbounded',sans-serif;font-size:22px;color:#F0F4F8;margin-bottom:12px;">
+        7 дней бесплатно
+      </h2>
+      <p style="color:#8A9BAD;font-size:14px;max-width:360px;margin-bottom:28px;">
+        Попробуйте CHEB VPN без оплаты — полный доступ, без ограничений
+      </p>
+      <button id="btn-activate-trial" onclick="activateTrial()"
+        style="background:#00D4FF;color:#080C10;border:none;border-radius:14px;
+        padding:14px 40px;font-family:'Unbounded',sans-serif;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:12px;">
+        Активировать 7 дней бесплатно
+      </button>
+      <div id="trial-overlay-error" style="color:#FF5252;font-size:13px;margin-top:4px;display:none;"></div>
+      <button onclick="document.getElementById('trial-offer-overlay').remove();navigate('dashboard');"
+        style="background:none;border:none;color:#4A5A6A;font-family:'Onest',sans-serif;font-size:13px;cursor:pointer;padding:8px;margin-top:8px;">
+        Закрыть
+      </button>
+    `;
+  }
+
+  document.body.appendChild(overlay);
+}
+
+async function activateTrial() {
+  const btn = document.getElementById('btn-activate-trial');
+  const errEl = document.getElementById('trial-overlay-error');
+  if (btn) { btn.disabled = true; btn.textContent = 'Активируем...'; }
+  if (errEl) errEl.style.display = 'none';
+  try {
+    const res = await apiFetch('/api/trial/activate', { method: 'POST' });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || 'Ошибка активации');
+    const overlay = document.getElementById('trial-offer-overlay');
+    if (overlay) overlay.remove();
+    navigate('dashboard');
+    setTimeout(showTrialSuccess, 300);
+  } catch(e) {
+    if (errEl) { errEl.textContent = e.message; errEl.style.display = 'block'; }
+    if (btn) { btn.disabled = false; btn.textContent = 'Активировать 7 дней бесплатно'; }
+  }
+}
+
+// ── Telegram link (Блок 3) ─────────────────────────────────────────────────────
+let _linkInterval = null;
+
+async function showLinkTelegram() {
+  let code;
+  try {
+    const res = await apiFetch('/api/auth/telegram/link-code', { method: 'POST' });
+    const data = await res.json();
+    if (!data.code) throw new Error('no code');
+    code = data.code;
+  } catch(e) {
+    showDashToast('Не удалось получить код. Попробуйте ещё раз.');
+    return;
+  }
+
+  // Replace config-content with link screen
+  const configContent = document.getElementById('config-content');
+  if (configContent) {
+    configContent.innerHTML = `
+      <div class="tg-screen">
+        <div class="tg-screen-icon">✈️</div>
+        <h3>Привязать Telegram аккаунт</h3>
+        <p>Отправьте команду боту — он найдёт вашу подписку<br>и перенесёт её сюда автоматически</p>
+        <div class="tg-code-box">
+          <div class="tg-code-label">Отправьте боту:</div>
+          <div class="tg-code-text">/link ${code}</div>
+        </div>
+        <div class="tg-steps">
+          <strong>1.</strong> Откройте <a href="https://t.me/chebvpn_bot" target="_blank" style="color:var(--accent);">@chebvpn_bot</a> в Telegram<br>
+          <strong>2.</strong> Отправьте <strong>/link ${code}</strong><br>
+          <strong>3.</strong> Вернитесь — подписка появится сама
+        </div>
+        <div class="tg-waiting" id="tg-link-status">⏳ Ожидаем привязку<span id="tg-link-dots"></span></div>
+        <button onclick="loadDashboard()" style="background:none;border:none;color:var(--text2);font-family:var(--font-b);font-size:13px;cursor:pointer;margin-top:12px;text-decoration:underline;">
+          Отмена
+        </button>
+      </div>
+    `;
+    _animateDots('tg-link-dots');
+  }
+
+  if (_linkInterval) clearInterval(_linkInterval);
+  _linkInterval = setInterval(async () => {
+    try {
+      const check = await apiFetch('/api/subscription');
+      const sub = await check.json();
+      if (sub.is_active) {
+        clearInterval(_linkInterval);
+        showDashToast('Подписка привязана! ✓');
+        loadDashboard();
+      }
+    } catch(e) {}
+  }, 3000);
+  setTimeout(() => clearInterval(_linkInterval), 300000);
+}
+
+// Вызывается из настроек (кнопка "Привязать" в linked accounts)
+async function showLinkTelegramFromSettings() {
+  // Switch to "Мой ключ" tab and show the link screen there
+  switchDashTab('key');
+  await showLinkTelegram();
+}
+
+// ── Telegram login (Блок 7) ────────────────────────────────────────────────────
+let _loginInterval = null;
+
+async function startTelegramLogin() {
+  let code;
+  try {
+    const res = await fetch(API + '/api/auth/telegram/login-code');
+    const data = await res.json();
+    if (!data.code) throw new Error('no code');
+    code = data.code;
+  } catch(e) {
+    showDashToast('Не удалось получить код. Попробуйте ещё раз.');
+    return;
+  }
+
+  // Show telegram login screen
+  _hideAllAuthScreens();
+  const screen = document.getElementById('auth-telegram-screen');
+  screen.style.display = 'block';
+  screen.innerHTML = `
+    <button class="auth-back-btn" onclick="showAuthMethods(); if(_loginInterval) clearInterval(_loginInterval);">← Назад</button>
+    <div class="tg-screen">
+      <div class="tg-screen-icon">✈️</div>
+      <h3>Войти через Telegram</h3>
+      <p>Отправьте команду в @chebvpn_bot</p>
+      <div class="tg-code-box">
+        <div class="tg-code-label">Отправьте боту:</div>
+        <div class="tg-code-text">/login ${code}</div>
+      </div>
+      <div class="tg-steps">
+        <strong>1.</strong> Откройте <a href="https://t.me/chebvpn_bot" target="_blank" style="color:var(--accent);">@chebvpn_bot</a> в Telegram<br>
+        <strong>2.</strong> Отправьте <strong>/login ${code}</strong><br>
+        <strong>3.</strong> Вернитесь — вход произойдёт сам
+      </div>
+      <div class="tg-waiting">⏳ Ожидаем<span id="tg-login-dots"></span></div>
+    </div>
+  `;
+  _animateDots('tg-login-dots');
+
+  if (_loginInterval) clearInterval(_loginInterval);
+  _loginInterval = setInterval(async () => {
+    try {
+      const check = await fetch(API + '/api/auth/telegram/login-status?code=' + code);
+      const status = await check.json();
+      if (status.token) {
+        clearInterval(_loginInterval);
+        localStorage.setItem('chebvpn_token', status.token);
+        navigate('dashboard');
+      }
+    } catch(e) {}
+  }, 2000);
+  setTimeout(() => clearInterval(_loginInterval), 300000);
+}
+
+function _animateDots(elId) {
+  let dots = 0;
+  const interval = setInterval(() => {
+    const el = document.getElementById(elId);
+    if (!el) { clearInterval(interval); return; }
+    dots = (dots + 1) % 4;
+    el.textContent = '.'.repeat(dots);
+  }, 600);
+}
+
+// ── Forgot password ───────────────────────────────────────────────────────────
+async function doForgotPassword() {
+  const email = document.getElementById('forgot-email').value.trim();
+  const errEl = document.getElementById('forgot-error');
+  const successEl = document.getElementById('forgot-success');
+  const btn = document.getElementById('btn-forgot');
+  errEl.style.display = 'none';
+  successEl.style.display = 'none';
+  if (!email) { errEl.textContent = 'Введите email'; errEl.style.display = 'block'; return; }
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Отправляем...';
+  try {
+    const res = await fetch(API + '/api/auth/forgot-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+    const data = await res.json();
+    successEl.textContent = 'Если этот email зарегистрирован, вы получите ссылку для сброса пароля.';
+    successEl.style.display = 'block';
+    // Dev helper: show direct link if debug_token returned
+    if (data.debug_token) {
+      const link = document.createElement('div');
+      link.style.cssText = 'margin-top:10px;font-size:12px;word-break:break-all;';
+      link.innerHTML = '<span style="color:var(--text3)">Debug: </span><a href="/reset-password.html?token=' + data.debug_token + '" style="color:var(--accent);">открыть форму сброса</a>';
+      successEl.appendChild(link);
+    }
+  } catch (e) {
+    errEl.textContent = 'Ошибка. Попробуйте позже.';
+    errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Отправить ссылку';
+  }
+}
+
+// ── Phone auth ─────────────────────────────────────────────────────────────────
+function normalizePhoneInput(raw) {
+  const digits = raw.replace(/\D/g, '');
+  if (digits.length === 10) return '+7' + digits;
+  if (digits.length === 11 && (digits[0] === '7' || digits[0] === '8')) return '+7' + digits.slice(1);
+  return null;
+}
+
+async function sendCode(isResend) {
+  const rawPhone = document.getElementById('phone-number').value.trim();
+  const phone = normalizePhoneInput(rawPhone);
+  const errEl = document.getElementById('phone-error');
+  errEl.style.display = 'none';
+  if (!phone) {
+    errEl.textContent = 'Введите корректный номер телефона';
+    errEl.style.display = 'block';
+    return;
+  }
+  _phoneNormalized = phone;
+  const btn = document.getElementById('btn-send-code');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>Отправляем...'; }
+  try {
+    const res = await fetch(API + '/api/auth/phone/send-code', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || 'Ошибка отправки SMS');
+    document.getElementById('phone-step1').style.display = 'none';
+    document.getElementById('phone-step2').style.display = 'block';
+    // Focus first code input
+    document.querySelector('.code-input input').focus();
+    startResendTimer();
+  } catch (e) {
+    errEl.textContent = e.message;
+    errEl.style.display = 'block';
+    if (btn) { btn.disabled = false; btn.textContent = 'Получить код'; }
+  }
+}
+
+function startResendTimer() {
+  let seconds = 60;
+  const timerEl = document.getElementById('resend-timer');
+  const resendBtn = document.getElementById('btn-resend');
+  resendBtn.disabled = true;
+  if (_resendTimer) clearInterval(_resendTimer);
+  _resendTimer = setInterval(() => {
+    seconds--;
+    timerEl.textContent = `Повторная отправка через ${seconds} с. `;
+    if (seconds <= 0) {
+      clearInterval(_resendTimer);
+      timerEl.textContent = '';
+      resendBtn.disabled = false;
+    }
+  }, 1000);
+}
+
+function codeInput(el, idx) {
+  const val = el.value.replace(/\D/g, '');
+  el.value = val ? val[val.length - 1] : '';
+  const inputs = document.querySelectorAll('.code-input input');
+  if (el.value && idx < 3) inputs[idx + 1].focus();
+  // Auto-submit when all 4 filled
+  const code = Array.from(inputs).map(i => i.value).join('');
+  if (code.length === 4) verifyCode();
+}
+
+function codeKey(event, idx) {
+  const inputs = document.querySelectorAll('.code-input input');
+  if (event.key === 'Backspace' && !inputs[idx].value && idx > 0) {
+    inputs[idx - 1].focus();
+  }
+}
+
+async function verifyCode() {
+  const inputs = document.querySelectorAll('.code-input input');
+  const code = Array.from(inputs).map(i => i.value).join('');
+  const errEl = document.getElementById('phone-error');
+  errEl.style.display = 'none';
+  if (code.length < 4) {
+    errEl.textContent = 'Введите 4-значный код';
+    errEl.style.display = 'block';
+    return;
+  }
+  const btn = document.getElementById('btn-verify');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Проверяем...';
+  try {
+    const ref_code = localStorage.getItem('cheb_ref') || null;
+    const res = await fetch(API + '/api/auth/phone/verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone: _phoneNormalized, code }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || 'Неверный код');
+    localStorage.setItem('chebvpn_token', data.access_token);
+    localStorage.removeItem('cheb_ref');
+    navigate('dashboard');
+  } catch (e) {
+    errEl.textContent = e.message;
+    errEl.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = 'Войти';
+  }
+}
+
+function resetPhoneForm() {
+  document.getElementById('phone-step1').style.display = 'block';
+  document.getElementById('phone-step2').style.display = 'none';
+  document.getElementById('btn-send-code').disabled = false;
+  document.getElementById('btn-send-code').textContent = 'Получить код';
+  document.querySelectorAll('.code-input input').forEach(i => i.value = '');
+  if (_resendTimer) clearInterval(_resendTimer);
+}
+
+function logout() {
+  localStorage.removeItem('chebvpn_token');
+  navigate('login');
+}
+
+// ── Dashboard ─────────────────────────────────────────────────────────────────
+async function loadDashboard() {
+  try {
+    const [meRes, subRes, payRes, refRes] = await Promise.all([
+      apiFetch('/api/me'),
+      apiFetch('/api/subscription'),
+      apiFetch('/api/payments/history'),
+      apiFetch('/api/referral/stats'),
+    ]);
+    const me = await meRes.json();
+    const sub = await subRes.json();
+    const pays = await payRes.json();
+    const ref = refRes.ok ? await refRes.json() : null;
+
+    currentUser = me;
+    const displayName = me.phone || me.email;
+    const shortName = displayName.includes('@') ? displayName.split('@')[0] : displayName;
+    document.getElementById('nav-email').textContent = displayName;
+    document.getElementById('dash-greeting').textContent = 'Привет, ' + shortName + '!';
+    // Fill settings
+    const settingsEmail = document.getElementById('settings-email');
+    if (settingsEmail) settingsEmail.value = me.email;
+    const settingsTg = document.getElementById('settings-tg');
+    if (settingsTg && me.telegram_username) settingsTg.value = '@' + me.telegram_username;
+
+    renderSubscription(sub, me.id);
+    renderPayments(pays);
+    if (ref) renderReferral(ref);
+    renderLinkedAccounts(me);
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+const PLAN_LABELS = { '1m': '1 месяц', '2m': '2 месяца', '3m': '3 месяца', 'trial': '7 дней (триал)' };
+
+function renderSubscription(sub, userId) {
+  const badge = document.getElementById('sub-badge');
+  const detail = document.getElementById('dash-sub-detail');
+  const configContent = document.getElementById('config-content');
+
+  if (sub.is_active && sub.expires_at) {
+    const exp = new Date(sub.expires_at);
+    const fmt = exp.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
+    badge.className = 'badge badge-green';
+    badge.textContent = 'Активна';
+    detail.textContent = `Подписка активна · Истекает ${fmt} · осталось ${sub.days_left} дн.`;
+
+    if (sub.vless_config) {
+      configContent.innerHTML = `
+        <div class="config-grid">
+          <div class="qr-box" id="qr-box">
+            <div class="qr-placeholder" id="qr-placeholder"></div>
+          </div>
+          <div class="config-info">
+            <div class="config-label">Ваш VLESS-ключ</div>
+            <div class="config-string" id="vless-str">${escHtml(sub.vless_config)}</div>
+            <div class="config-actions">
+              <button class="btn-action" onclick="copyConfig()">Скопировать</button>
+            </div>
+            <div class="instruction-links">
+              <span class="config-label" style="width:100%;margin-bottom:4px;">Инструкция по подключению:</span>
+              <button class="instr-btn" onclick="openInstr('windows')">🪟 Windows</button>
+              <button class="instr-btn" onclick="openInstr('ios')">📱 iOS / macOS</button>
+              <button class="instr-btn" onclick="openInstr('android')">🤖 Android</button>
+            </div>
+          </div>
+        </div>
+      `;
+      window._vlessConfig = sub.vless_config;
+      window._userId = userId;
+      loadQrCode(userId);
+    } else {
+      configContent.innerHTML = '<div class="empty-state">Конфигурация активируется. Обновите страницу через минуту.</div>';
+    }
+  } else {
+    badge.className = 'badge badge-gray';
+    badge.textContent = 'Нет подписки';
+    detail.textContent = 'Подписка не активна';
+    configContent.innerHTML = `
+      <div class="nosub-card">
+        <div class="nosub-icon">🔒</div>
+        <h3>Подписка не найдена</h3>
+        <p>Если вы уже оплачивали VPN через Telegram-бот —<br>
+           привяжите аккаунт и подписка появится здесь автоматически</p>
+        <button onclick="navigate('checkout')" class="btn-primary" style="margin-bottom:10px;">
+          Купить подписку
+        </button>
+        <button onclick="showLinkTelegram()" class="btn-outline">
+          У меня уже есть подписка из бота →
+        </button>
+      </div>
+    `;
+  }
+}
+
+function renderPayments(pays) {
+  const tableEl = document.getElementById('payments-table');
+  const cardsEl = document.getElementById('payments-cards');
+  if (!tableEl || !cardsEl) return;
+
+  if (!pays.length) {
+    tableEl.innerHTML = '<div class="empty-state">Платежей пока нет</div>';
+    cardsEl.innerHTML = '';
+    return;
+  }
+
+  const statusMap = { succeeded: 'Оплачено', pending: 'Ожидание', canceled: 'Отменён' };
+
+  // Desktop: rows (payments-list style)
+  tableEl.innerHTML = pays.map(p => {
+    const d = new Date(p.created_at).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: '2-digit' });
+    const planLabel = PLAN_LABELS[p.plan] || p.plan;
+    return `<div class="payment-item">
+      <span class="p-date">${d}</span>
+      <span class="p-plan">${planLabel}</span>
+      <span class="p-amount">${p.amount} ₽</span>
+      <span class="p-status ${p.status}">${statusMap[p.status] || p.status}</span>
+    </div>`;
+  }).join('');
+
+  // Mobile: cards
+  cardsEl.innerHTML = pays.map(p => {
+    const d = new Date(p.created_at).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    const planLabel = PLAN_LABELS[p.plan] || p.plan;
+    return `<div class="payment-card">
+      <div class="payment-card-row"><span class="payment-card-label">Дата</span><span>${d}</span></div>
+      <div class="payment-card-row"><span class="payment-card-label">Тариф</span><span>${planLabel}</span></div>
+      <div class="payment-card-row"><span class="payment-card-label">Сумма</span><span style="color:var(--accent);font-weight:600;">${p.amount} ₽</span></div>
+      <div class="payment-card-row"><span class="payment-card-label">Статус</span><span class="p-status ${p.status}">${statusMap[p.status] || p.status}</span></div>
+    </div>`;
+  }).join('');
+}
+
+function copyConfig() {
+  if (!window._vlessConfig) return;
+  navigator.clipboard.writeText(window._vlessConfig).then(() => {
+    const btn = event.target;
+    btn.textContent = 'Скопировано!';
+    setTimeout(() => btn.textContent = 'Скопировать', 2000);
+  });
+}
+
+function downloadConfig() {
+  if (!window._vlessConfig) return;
+  const blob = new Blob([window._vlessConfig], { type: 'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'chebvpn.txt';
+  a.click();
+}
+
+// ── QR code loader (fixes auth header issue) ──────────────────────────────────
+async function loadQrCode(userId) {
+  try {
+    const token = localStorage.getItem('chebvpn_token');
+    const res = await fetch('/api/qr/' + userId + '?t=' + Date.now(), {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    if (!res.ok) return;
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    // Main dashboard QR
+    const qrBox = document.getElementById('qr-box');
+    if (qrBox) {
+      qrBox.innerHTML = '<img src="' + url + '" alt="QR" id="qr-img" style="width:100%;height:100%;object-fit:contain;">';
+    }
+    // Store for instruction modal
+    window._qrBlobUrl = url;
+    const instrQr = document.getElementById('instr-qr-img');
+    if (instrQr) { instrQr.src = url; instrQr.style.display = 'block'; }
+  } catch(e) {}
+}
+
+// ── Instructions modal ────────────────────────────────────────────────────────
+const INSTR_DATA = {
+  windows: {
+    title: '🪟 Windows — Hiddify',
+    downloadUrl: 'https://cloud.mail.ru/public/MzQk/QJVvvgY6j',
+    downloadLabel: '↓ Скачать Hiddify',
+    steps: [
+      { h: 'Скачай и установи Hiddify', p: 'Скачай Hiddify по ссылке выше и установи.' },
+      { h: 'Добавь ключ', p: 'Нажми <strong>«+»</strong> → <strong>«Добавить из буфера обмена»</strong>. Ключ скопирован кнопкой выше — вставь и нажми «Подключить».' },
+      { h: 'Подключись', p: 'Нажми кнопку включения в Hiddify. Готово!' },
+    ],
+  },
+  ios: {
+    title: '📱 iOS / macOS — Happ',
+    downloadUrl: 'https://apps.apple.com/ru/app/happ-proxy-utility-plus/id6746188973',
+    downloadLabel: '↓ Happ в App Store',
+    steps: [
+      { h: 'Установи Happ из App Store', p: 'Работает на iPhone и Mac — одно приложение для обоих устройств.' },
+      { h: 'Импортируй ключ', p: 'Нажми <strong>«+»</strong> → <strong>«Импорт из буфера обмена»</strong> или отсканируй QR-код выше.' },
+      { h: 'Подключись', p: 'Разреши добавить VPN-профиль → включи переключатель. Готово!' },
+    ],
+  },
+  android: {
+    title: '🤖 Android — v2RayTun',
+    downloadUrl: 'https://github.com/DigneZzZ/v2raytun/releases/download/5.19.64/v2RayTun_universal.apk',
+    downloadLabel: '↓ Скачать v2RayTun APK',
+    steps: [
+      { h: 'Скачай и установи v2RayTun', p: 'Скачай APK по ссылке выше и установи (разреши установку из неизвестных источников).' },
+      { h: 'Импортируй ключ', p: 'Нажми <strong>«+»</strong> → <strong>«Импорт из буфера»</strong> — или отсканируй QR-код выше.' },
+      { h: 'Подключись', p: 'Нажми кнопку <strong>▶</strong> для подключения. Значок ключа появится в статус-баре.' },
+    ],
+  },
+};
+
+function openInstr(platform) {
+  const d = INSTR_DATA[platform];
+  if (!d) return;
+
+  document.getElementById('instr-title').textContent = d.title;
+
+  // Key block
+  const keyText = document.getElementById('instr-key-text');
+  const keyBlock = document.getElementById('instr-key-block');
+  if (window._vlessConfig) {
+    keyText.textContent = window._vlessConfig;
+    keyBlock.style.display = 'flex';
+  } else {
+    keyBlock.style.display = 'none';
+  }
+
+  // QR
+  const qrImg = document.getElementById('instr-qr-img');
+  if (window._qrBlobUrl) {
+    qrImg.src = window._qrBlobUrl;
+    qrImg.style.display = 'block';
+  } else {
+    qrImg.style.display = 'none';
+  }
+
+  // Steps
+  document.getElementById('instr-steps').innerHTML = d.steps.map((s, i) => `
+    <div class="instr-step">
+      <div class="instr-step-num">${i + 1}</div>
+      <div class="instr-step-body">
+        <h4>${s.h}</h4>
+        <p>${s.p}</p>
+        ${i === 0 ? '<a href="' + d.downloadUrl + '" target="_blank">' + d.downloadLabel + '</a>' : ''}
+      </div>
+    </div>
+  `).join('');
+
+  // Extra link (Android fallback)
+  const extraEl = document.getElementById('instr-extra-link');
+  extraEl.innerHTML = d.extraUrl
+    ? '<a href="' + d.extraUrl + '" target="_blank" style="color:var(--text2);font-size:12px;">' + d.extraLabel + '</a>'
+    : '';
+
+  document.getElementById('instr-overlay').classList.add('open');
+}
+
+function closeInstrModal(e) {
+  if (!e || e.target === document.getElementById('instr-overlay') || e.currentTarget === document.querySelector('.instr-close')) {
+    document.getElementById('instr-overlay').classList.remove('open');
+  }
+}
+
+// ── Linked accounts ───────────────────────────────────────────────────────────
+function renderLinkedAccounts(me) {
+  const list = document.getElementById('linked-accounts-list');
+  if (!list) return;
+
+  const hasEmail = !!me.email && !me.email.endsWith('@chebvpn.internal');
+  const hasPhone = !!me.phone;
+  const hasTg = !!me.telegram_username;
+
+  const methods = [
+    { id: 'email', icon: '✉️', name: 'Email', linked: hasEmail,
+      detail: hasEmail ? me.email : 'Не привязан', action: null },
+    { id: 'phone', icon: '📱', name: 'Телефон', linked: hasPhone,
+      detail: hasPhone ? me.phone : 'Не привязан', action: () => openPhoneBind() },
+    { id: 'telegram', icon: '✈️', name: 'Telegram', linked: hasTg,
+      detail: hasTg ? '@' + me.telegram_username : 'Не привязан',
+      action: () => showLinkTelegramFromSettings() },
+  ];
+
+  list.innerHTML = methods.map(m => `
+    <div class="linked-row">
+      <div class="linked-icon">${m.icon}</div>
+      <div class="linked-info">
+        <div class="linked-name">${m.name}</div>
+        <div class="linked-status ${m.linked ? 'ok' : ''}">${m.detail}</div>
+      </div>
+      ${m.linked
+        ? '<span class="btn-link-acct linked">Привязан ✓</span>'
+        : m.action
+          ? `<button class="btn-link-acct" onclick="(${m.action.toString()})()">Привязать</button>`
+          : ''
+      }
+    </div>
+  `).join('');
+}
+
+let _bindPhoneNormalized = null;
+
+function openPhoneBind() {
+  document.getElementById('phone-bind-wrap').style.display = 'block';
+  document.getElementById('bind-phone-step1').style.display = 'block';
+  document.getElementById('bind-phone-step2').style.display = 'none';
+  document.getElementById('bind-phone-error').style.display = 'none';
+  document.getElementById('bind-phone-number').value = '';
+  document.querySelectorAll('#bind-code-boxes input').forEach(i => i.value = '');
+}
+
+function closeBind() {
+  document.getElementById('phone-bind-wrap').style.display = 'none';
+}
+
+async function bindSendCode() {
+  const rawPhone = document.getElementById('bind-phone-number').value.trim();
+  const phone = normalizePhoneInput(rawPhone);
+  const errEl = document.getElementById('bind-phone-error');
+  errEl.style.display = 'none';
+  if (!phone) { errEl.textContent = 'Введите корректный номер'; errEl.style.display = 'block'; return; }
+  _bindPhoneNormalized = phone;
+  try {
+    const res = await fetch(API + '/api/auth/phone/send-code', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || 'Ошибка отправки SMS');
+    document.getElementById('bind-phone-step1').style.display = 'none';
+    document.getElementById('bind-phone-step2').style.display = 'block';
+    document.querySelector('#bind-code-boxes input').focus();
+  } catch (e) {
+    errEl.textContent = e.message; errEl.style.display = 'block';
+  }
+}
+
+function bindCodeInput(el, idx) {
+  const val = el.value.replace(/\D/g, '');
+  el.value = val ? val[val.length - 1] : '';
+  const inputs = document.querySelectorAll('#bind-code-boxes input');
+  if (el.value && idx < 3) inputs[idx + 1].focus();
+  const code = Array.from(inputs).map(i => i.value).join('');
+  if (code.length === 4) bindVerifyCode();
+}
+
+function bindCodeKey(event, idx) {
+  const inputs = document.querySelectorAll('#bind-code-boxes input');
+  if (event.key === 'Backspace' && !inputs[idx].value && idx > 0) inputs[idx - 1].focus();
+}
+
+async function bindVerifyCode() {
+  const inputs = document.querySelectorAll('#bind-code-boxes input');
+  const code = Array.from(inputs).map(i => i.value).join('');
+  const errEl = document.getElementById('bind-phone-error');
+  if (code.length < 4) return;
+  try {
+    const res = await apiFetch('/api/auth/phone/bind', {
+      method: 'POST',
+      body: JSON.stringify({ phone: _bindPhoneNormalized, code }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || 'Неверный код');
+    closeBind();
+    showDashToast('Телефон успешно привязан!');
+    currentUser.phone = _bindPhoneNormalized;
+    renderLinkedAccounts(currentUser);
+  } catch (e) {
+    errEl.textContent = e.message; errEl.style.display = 'block';
+  }
+}
+
+// ── Settings ──────────────────────────────────────────────────────────────────
+async function saveSettings() {
+  const tg = document.getElementById('settings-tg').value.trim();
+  try {
+    const res = await apiFetch('/api/me', {
+      method: 'PATCH',
+      body: JSON.stringify({ telegram_username: tg.replace(/^@/, '') }),
+    });
+    if (!res.ok) throw new Error();
+    const ok = document.getElementById('save-ok');
+    ok.style.display = 'inline';
+    setTimeout(() => ok.style.display = 'none', 2500);
+  } catch(e) {}
+}
+
+// ── Checkout ──────────────────────────────────────────────────────────────────
+function selectPlan(plan) {
+  selectedPlan = plan;
+  document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
+  const el = document.getElementById('plan-' + plan);
+  if (el) el.classList.add('selected');
+}
+
+async function doPay() {
+  const errEl = document.getElementById('pay-error');
+  const btn = document.getElementById('btn-pay');
+  errEl.style.display = 'none';
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Создаём платёж...';
+  try {
+    const res = await apiFetch('/api/checkout', {
+      method: 'POST',
+      body: JSON.stringify({ plan: selectedPlan }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || 'Ошибка создания платежа');
+    window.location.href = data.confirmation_url;
+  } catch (e) {
+    errEl.textContent = e.message;
+    errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = 'Оплатить картой через ЮКасса →';
+  }
+}
+
+// ── Referral ──────────────────────────────────────────────────────────────────
+function renderReferral(ref) {
+  document.getElementById('ref-link-url').textContent = ref.ref_url;
+  document.getElementById('ref-invited').textContent = ref.invited_count;
+  document.getElementById('ref-earned').textContent = ref.total_days_earned + ' дн.';
+
+  if (ref.history && ref.history.length > 0) {
+    const wrap = document.getElementById('ref-history-wrap');
+    const list = document.getElementById('ref-history');
+    wrap.style.display = 'block';
+    const monthNames = ['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
+    list.innerHTML = ref.history.map(h => {
+      const d = new Date(h.date);
+      const dateStr = d.getDate() + ' ' + monthNames[d.getMonth()];
+      return `<div class="ref-history-item">
+        <span class="rh-date">${dateStr}</span>
+        <span>новый друг</span>
+        <span class="rh-days">+${h.bonus_days} дней</span>
+        <span class="rh-ok">✓</span>
+      </div>`;
+    }).join('');
+  }
+}
+
+function copyRefLink() {
+  const url = document.getElementById('ref-link-url').textContent;
+  const btn = document.getElementById('btn-copy-ref');
+  if (!url || url === 'Загрузка...') return;
+  navigator.clipboard.writeText(url).then(() => {
+    btn.textContent = 'Скопировано ✓';
+    setTimeout(() => btn.textContent = 'Скопировать', 2000);
+  });
+}
+
+// ── Utils ─────────────────────────────────────────────────────────────────────
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+</script>
+</body>
+</html>
