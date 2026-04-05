@@ -1,0 +1,5 @@
+# Large binary files (add back via Git LFS if needed)
+logo_new.png
+
+# System files
+.DS_Store
