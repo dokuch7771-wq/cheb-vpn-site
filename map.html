@@ -8,10 +8,13 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.min.css"/>
 <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:#080C10;color:#e0e8f0;font-family:'Onest',sans-serif;overflow:hidden;height:100vh;width:100vw;user-select:none}
-#header{position:fixed;top:0;left:0;right:0;height:48px;background:rgba(8,12,16,.95);backdrop-filter:blur(12px);border-bottom:1px solid #00D4FF1a;display:flex;align-items:center;padding:0 20px;z-index:300;gap:14px}
+:root{--bg:#080C10;--bg2:#0b1018;--surface:#0d1520;--border:#1a2a3a;--text:#e0e8f0;--text2:#6a8aaa;--accent:#00D4FF;--accent-dim:#00D4FF22;}
+[data-theme="light"]{--bg:#f2f4f7;--bg2:#e8ecf2;--surface:#ffffff;--border:#d0d8e8;--text:#1a2a3a;--text2:#4a6a8a;--accent:#0077cc;--accent-dim:#0077cc22;}
+body{background:var(--bg);color:var(--text);font-family:'Onest',sans-serif;overflow:hidden;height:100vh;width:100vw;user-select:none}
+#header{position:fixed;top:0;left:0;right:0;height:48px;background:rgba(8,12,16,.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;z-index:300;gap:14px}
 .logo{font-family:'Unbounded',sans-serif;font-size:15px;font-weight:700;color:#00D4FF;letter-spacing:.5px}
 .subtitle{font-size:11px;color:#3a5a7a}
 .legend{margin-left:auto;display:flex;gap:14px;align-items:center}
@@ -143,6 +146,16 @@ body{background:#080C10;color:#e0e8f0;font-family:'Onest',sans-serif;overflow:hi
 .lcard-title{font-size:12px;font-weight:500;color:#c0d8ec;margin-bottom:4px}
 .lcard-meta{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .lcard-branch{font-size:10px;color:#3a5a7a}
+.snip-btn{background:#0a1828;border:1px solid #1a3a5a;color:#7ab8d4;font-size:11px;padding:3px 10px;border-radius:4px;cursor:pointer;font-family:'Onest',sans-serif;transition:all .2s;}
+.snip-btn:hover{background:#0d2035;color:#00D4FF;border-color:#00D4FF44;}
+.kcard-ghost{opacity:.4;background:#0d2035!important;}
+.kcard-drag{opacity:.9;transform:rotate(2deg);}
+/* ── Fullscreen terminal ── */
+#term-panel.fullscreen{position:fixed!important;inset:0!important;z-index:1500!important;width:100vw!important;height:100vh!important;border-radius:0!important;border:none!important;}
+#term-panel.fullscreen #term-inner{height:calc(100vh - 88px)!important;}
+/* ── Light theme ── */
+[data-theme="light"]{--bg:#f0f2f5;--bg2:#e4e8ee;--card:#ffffff;--border:#d0d8e4;--text:#1a2a3a;--text2:#4a6a8a;--accent:#0077cc;--accent2:#005fa3;}
+@media(prefers-color-scheme:light){:root:not([data-theme="dark"]){--bg:#f0f2f5;--bg2:#e4e8ee;--card:#ffffff;--border:#d0d8e4;--text:#1a2a3a;--text2:#4a6a8a;--accent:#0077cc;--accent2:#005fa3;}}
 </style>
 </head>
 <body>
@@ -152,6 +165,7 @@ body{background:#080C10;color:#e0e8f0;font-family:'Onest',sans-serif;overflow:hi
   <div class="subtitle">Project Mind Map</div>
   <button class="hbtn" id="btn-kanban" onclick="openKanban()">📋 Все задачи</button>
   <button class="hbtn" id="btn-term" onclick="toggleTerminal()">⚡ Терминал</button>
+  <button id="theme-toggle" onclick="toggleTheme()" title="Тема" style="background:none;border:1px solid #1a3a5a;color:#5a8aaa;font-size:13px;padding:4px 10px;border-radius:6px;cursor:pointer;font-family:'Onest',sans-serif;">🌙</button>
   <div class="legend">
     <div class="li"><div class="ld" style="background:#ff5555"></div>Срочно</div>
     <div class="li"><div class="ld" style="background:#ffd166"></div>Активно</div>
@@ -179,25 +193,26 @@ body{background:#080C10;color:#e0e8f0;font-family:'Onest',sans-serif;overflow:hi
       <button class="kf-btn on" data-s="todo" onclick="toggleFilter(this)">🔵 Планируется</button>
       <button class="kf-btn on" data-s="done" onclick="toggleFilter(this)">✅ Готово</button>
     </div>
+    <button onclick="exportTasksMd()" style="background:#0a1828;border:1px solid #1a3a5a;color:#7ab8d4;font-size:11px;padding:3px 10px;border-radius:4px;cursor:pointer;font-family:'Onest',sans-serif;">⬇ MD</button>
     <button id="kb-close" onclick="closeKanban()">✕</button>
   </div>
   <!-- kanban columns -->
   <div id="kb-body">
-    <div class="kb-col urgent">
+    <div class="kb-col urgent" data-status="urgent">
       <div class="kb-col-head">🚨 Срочно <span class="kb-count" id="kc-urgent">0</span></div>
-      <div class="kb-col-body" id="kl-urgent"></div>
+      <div class="kb-col-body" data-status="urgent" id="kl-urgent"></div>
     </div>
-    <div class="kb-col active">
+    <div class="kb-col active" data-status="active">
       <div class="kb-col-head">🟡 В работе <span class="kb-count" id="kc-active">0</span></div>
-      <div class="kb-col-body" id="kl-active"></div>
+      <div class="kb-col-body" data-status="active" id="kl-active"></div>
     </div>
-    <div class="kb-col todo">
+    <div class="kb-col todo" data-status="todo">
       <div class="kb-col-head">🔵 Планируется <span class="kb-count" id="kc-todo">0</span></div>
-      <div class="kb-col-body" id="kl-todo"></div>
+      <div class="kb-col-body" data-status="todo" id="kl-todo"></div>
     </div>
-    <div class="kb-col done">
+    <div class="kb-col done" data-status="done">
       <div class="kb-col-head">✅ Готово <span class="kb-count" id="kc-done">0</span></div>
-      <div class="kb-col-body" id="kl-done"></div>
+      <div class="kb-col-body" data-status="done" id="kl-done"></div>
     </div>
   </div>
   <!-- list view -->
@@ -239,7 +254,16 @@ body{background:#080C10;color:#e0e8f0;font-family:'Onest',sans-serif;overflow:hi
     <span id="term-task-label"></span>
     <button class="tbtn" onclick="termSendClaude()" title="Запустить claude">claude</button>
     <button class="tbtn" onclick="termClear()">clear</button>
+    <button id="term-fs-btn" onclick="makeTermFullscreen(!document.getElementById('term-panel').classList.contains('fullscreen'))" title="На весь экран" style="background:none;border:none;color:#3a6a9a;font-size:16px;cursor:pointer;padding:0 4px;">⛶</button>
     <button class="tbtn" style="color:#ff6b6b;border-color:#3d1515" onclick="closeTerminal()">✕ закрыть</button>
+  </div>
+  <div id="term-snippets" style="display:flex;gap:6px;padding:6px 12px;background:#020f1a;border-bottom:1px solid #0d2035;flex-wrap:wrap;">
+    <button class="snip-btn" onclick="termSnip('systemctl status vpn_bot chebvpn webhook_router --no-pager\n')">📊 Статус</button>
+    <button class="snip-btn" onclick="termSnip('journalctl -u vpn_bot -n 40 --no-pager\n')">📋 Лог бота</button>
+    <button class="snip-btn" onclick="termSnip('systemctl restart vpn_bot && echo OK\n')">🔄 Рестарт бота</button>
+    <button class="snip-btn" onclick="termSnip('bash /root/backups/backup.sh\n')">💾 Бэкап</button>
+    <button class="snip-btn" onclick="termSnip('df -h / && free -h\n')">💿 Диск/RAM</button>
+    <button class="snip-btn" onclick="termSnip('x-ui status\n')">🔌 XUI</button>
   </div>
   <div id="term-inner"></div>
 </div>
@@ -930,6 +954,10 @@ svg.addEventListener('click',()=>{
 });
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape'){
+    if(document.getElementById('term-panel') && document.getElementById('term-panel').classList.contains('fullscreen')){
+      makeTermFullscreen(false);
+      return;
+    }
     se('drawer').classList.remove('open');
     if(curG){curG.classList.remove('selected');curG=null;}
   }
@@ -1079,7 +1107,7 @@ function renderKanban(){
       col.innerHTML=filtered.length===0
         ?'<div class="kb-empty">Нет задач</div>'
         :filtered.map(t=>`
-          <div class="kcard" onclick="openTaskDetail(${JSON.stringify(t).replace(/"/g,'&quot;')})">
+          <div class="kcard" data-id="${t.id||''}" data-status="${t.s}" onclick="openTaskDetail(${JSON.stringify(t).replace(/"/g,'&quot;')})">
             <div class="kcard-title">${t.l}</div>
             <div class="kcard-meta">
               <span class="kcard-branch" style="border-color:${t.branchColor}33;color:${t.branchColor}99">${t.branch}</span>
@@ -1088,6 +1116,7 @@ function renderKanban(){
             ${t.d?`<div class="kcard-desc">${t.d}</div>`:''}
           </div>`).join('');
     });
+    initKanbanDnD();
   } else {
     const list=document.getElementById('kb-list');
     const order=['urgent','active','todo','done'];
@@ -1143,7 +1172,10 @@ function closeKanban(){
 }
 
 document.addEventListener('keydown',e=>{
-  if(e.key==='Escape') closeKanban();
+  if(e.key==='Escape'){
+    if(document.getElementById('task-modal').style.display==='flex') closeTaskModal();
+    else closeKanban();
+  }
 });
 
 // ─────────────────────────────────────────
@@ -1187,6 +1219,15 @@ function initXterm() {
   term.onData(data => {
     if (ws && ws.readyState === WebSocket.OPEN) {
       ws.send(JSON.stringify({ type: 'input', data }));
+    }
+  });
+
+  // Ctrl+C: если выделен текст — копируем, иначе SIGINT
+  document.getElementById('term-inner').addEventListener('keydown', function(e) {
+    if (e.ctrlKey && e.key === 'c' && window.getSelection().toString()) {
+      document.execCommand('copy');
+      e.preventDefault();
+      return;
     }
   });
 
@@ -1311,17 +1352,392 @@ function termClear() {
   if (term) term.clear();
 }
 
-// Переопределяем openTaskDetail чтобы открывать терминал
+// Переопределяем openTaskDetail чтобы открывать модальное окно
 function openTaskDetail(task) {
-  closeKanban();
-  openTerminal(task.l + (task.d ? ' — ' + task.d : ''));
+  openTaskModal(task, task.branch || '');
 }
+
+// ─────────────────────────────────────────
+// TASK IDS (auto-assign unique ids to tasks)
+// ─────────────────────────────────────────
+(function assignTaskIds() {
+  let idx = 0;
+  function walk(node) {
+    (node.tasks || []).forEach(t => {
+      if (!t.id) t.id = node.id + '-t' + (idx++);
+    });
+    (node.children || []).forEach(walk);
+  }
+  if (Array.isArray(D)) D.forEach(walk); else walk(D);
+})();
+
+// ─────────────────────────────────────────
+// PERSISTENCE (localStorage)
+// ─────────────────────────────────────────
+function saveTasksLocal() {
+  const overrides = {};
+  document.querySelectorAll('[data-id][data-status]').forEach(el => {
+    overrides[el.dataset.id] = el.dataset.status;
+  });
+  localStorage.setItem('chebvpn_task_overrides', JSON.stringify(overrides));
+}
+
+function loadTasksLocal() {
+  try {
+    const saved = localStorage.getItem('chebvpn_task_overrides');
+    if (!saved) return;
+    const overrides = JSON.parse(saved);
+    function applyOverrides(node) {
+      if (node.items) node.items.forEach(applyOverrides);
+      if (node.tasks) node.tasks.forEach(t => {
+        if (t.id && overrides[t.id] !== undefined) {
+          t.s = overrides[t.id];
+        }
+      });
+      if (node.id && overrides[node.id] !== undefined) {
+        node.s = overrides[node.id];
+      }
+      if (node.children) node.children.forEach(applyOverrides);
+    }
+    if (Array.isArray(D)) D.forEach(applyOverrides);
+    else applyOverrides(D);
+  } catch(e) { console.warn('loadTasksLocal:', e); }
+}
+
+function updateTaskStatusById(id, newStatus) {
+  function findAndUpdate(node) {
+    if (node.tasks) {
+      for (const t of node.tasks) {
+        if (t.id === id) { t.s = newStatus; return true; }
+      }
+    }
+    if (node.children) return node.children.some(findAndUpdate);
+    return false;
+  }
+  if (Array.isArray(D)) D.some(findAndUpdate);
+  else findAndUpdate(D);
+}
+
+// ─────────────────────────────────────────
+// KANBAN DnD (SortableJS)
+// ─────────────────────────────────────────
+function initKanbanDnD() {
+  document.querySelectorAll('.kb-col-body').forEach(col => {
+    if (col._sortable) col._sortable.destroy();
+    col._sortable = new Sortable(col, {
+      group: 'kanban',
+      animation: 150,
+      ghostClass: 'kcard-ghost',
+      dragClass: 'kcard-drag',
+      onEnd: evt => {
+        const taskId = evt.item.dataset.id;
+        const newStatus = evt.to.closest('[data-status]')?.dataset.status
+                       || evt.to.dataset.status;
+        if (taskId && newStatus) {
+          updateTaskStatusById(taskId, newStatus);
+          saveTasksLocal();
+        }
+      }
+    });
+  });
+}
+
+// ─────────────────────────────────────────
+// SNIPPET (terminal quick commands)
+// ─────────────────────────────────────────
+function termSnip(cmd) {
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify({ type: 'input', data: cmd }));
+  }
+}
+
+// ─────────────────────────────────────────
+// EXPORT TASKS MD
+// ─────────────────────────────────────────
+function exportTasksMd() {
+  const statuses = ['urgent','active','inprogress','todo','done'];
+  const labels = {urgent:'🚨 Срочно',active:'🔥 Активно',inprogress:'⚙️ В работе',todo:'📋 Очередь',done:'✅ Готово'};
+  const allTasks = [];
+  function collect(node, branch) {
+    const b = branch || node.l || '';
+    if (node.s && node.l && !node.items) allTasks.push({...node, branch: b});
+    if (node.items) node.items.forEach(c => collect(c, b));
+    if (node.tasks) node.tasks.forEach(t => allTasks.push({...t, branch: node.label ? node.label.replace('\n',' ') : b}));
+    if (node.children) node.children.forEach(c => collect(c, branch || (node.label ? node.label.replace('\n',' ') : b)));
+  }
+  if (Array.isArray(D)) D.forEach(n => collect(n, n.label || n.l));
+  else collect(D, D.label || D.l);
+
+  let md = `# CHEB VPN — Задачи\n*${new Date().toLocaleDateString('ru-RU')}*\n\n`;
+  statuses.forEach(s => {
+    const tasks = allTasks.filter(t => t.s === s);
+    if (!tasks.length) return;
+    md += `## ${labels[s]} (${tasks.length})\n`;
+    tasks.forEach(t => {
+      md += `- **${t.l}**`;
+      if (t.d) md += ` — ${t.d}`;
+      if (t.p) md += ` [${t.p}]`;
+      md += '\n';
+    });
+    md += '\n';
+  });
+
+  const blob = new Blob([md], {type:'text/markdown'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `chebvpn-tasks-${new Date().toISOString().slice(0,10)}.md`;
+  a.click();
+}
+
+// ─────────────────────────────────────────
+// TASK MODAL
+// ─────────────────────────────────────────
+let _activeTask = null;
+
+const STATUS_STYLE = {
+  urgent:     'background:#3a0a0a;color:#ff6b6b',
+  active:     'background:#1a2a0a;color:#88dd44',
+  inprogress: 'background:#1a1a0a;color:#ffcc44',
+  todo:       'background:#0a1a3a;color:#4488cc',
+  done:       'background:#0a2a1a;color:#44cc88',
+};
+const STATUS_LABEL = {urgent:'🚨 Срочно',active:'🔥 Активно',inprogress:'⚙️ В работе',todo:'📋 Очередь',done:'✅ Готово'};
+const PRIORITY_LABEL = {high:'🔴 Высокий',medium:'🟡 Средний',low:'🟢 Низкий'};
+
+function openTaskModal(task, branchName) {
+  _activeTask = { ...task, branchName };
+
+  // Breadcrumb
+  document.getElementById('tm-breadcrumb-branch').textContent = branchName || '';
+
+  // Title
+  document.getElementById('tm-title-disp').textContent = task.l || '';
+
+  // Status badge (topbar)
+  const statusEl = document.getElementById('tm-status');
+  const sStyle = STATUS_STYLE[task.s] || 'background:#1a2a3a;color:#5a8aaa';
+  statusEl.textContent = STATUS_LABEL[task.s] || task.s || '';
+  statusEl.setAttribute('style', 'display:inline-flex;align-items:center;gap:5px;font-size:12px;padding:4px 12px;border-radius:6px;font-weight:500;' + sStyle);
+
+  // Sidebar fields
+  document.getElementById('tm-status-val').textContent = STATUS_LABEL[task.s] || task.s || '';
+  document.getElementById('tm-priority-val').textContent = PRIORITY_LABEL[task.p] || '—';
+  document.getElementById('tm-branch-val').textContent = branchName || 'CHEB VPN';
+
+  // Description
+  const descEl = document.getElementById('tm-desc-text');
+  descEl.textContent = task.d || 'Описание не указано.';
+  document.getElementById('tm-desc-section').style.display = '';
+
+  // Notes
+  const noteKey = 'tasknote_' + (task.id || task.l);
+  document.getElementById('tm-notes').value = localStorage.getItem(noteKey) || '';
+
+  document.getElementById('task-modal').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function closeTaskModal() {
+  document.getElementById('task-modal').style.display = 'none';
+  document.body.style.overflow = '';
+  _activeTask = null;
+}
+
+function setTaskDone() {
+  if (!_activeTask) return;
+  updateTaskStatusById(_activeTask.id, 'done');
+  saveTasksLocal();
+  _activeTask.s = 'done';
+  const statusEl = document.getElementById('tm-status');
+  statusEl.textContent = STATUS_LABEL['done'];
+  statusEl.setAttribute('style','display:inline-flex;align-items:center;gap:5px;font-size:12px;padding:4px 12px;border-radius:6px;font-weight:500;'+STATUS_STYLE['done']);
+  document.getElementById('tm-status-val').textContent = STATUS_LABEL['done'];
+}
+
+function saveTaskNote(val) {
+  if (!_activeTask) return;
+  const noteKey = 'tasknote_' + (_activeTask.id || _activeTask.l);
+  localStorage.setItem(noteKey, val);
+}
+
+// Close on backdrop click — вешается в INIT после появления DOM
+
+function openTaskInTerminal() {
+  closeTaskModal();
+  if (!_activeTask) return;
+
+  const task = _activeTask;
+  const context = [
+    'Задача: ' + task.l,
+    task.d ? task.d : null,
+    task.branchName ? 'Раздел: ' + task.branchName : null,
+  ].filter(Boolean).join('. ');
+
+  // Switch to terminal
+  closeKanban();
+  openTerminal(context);
+
+  // Make fullscreen and launch claude
+  setTimeout(() => {
+    makeTermFullscreen(true);
+
+    // Wait for terminal to be ready, then launch claude with context
+    setTimeout(() => {
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: 'input', data: 'clear\n' }));
+        setTimeout(() => {
+          const claudeCmd = 'claude\n';
+          ws.send(JSON.stringify({ type: 'input', data: claudeCmd }));
+          setTimeout(() => {
+            const msg = context + '\n';
+            ws.send(JSON.stringify({ type: 'input', data: msg }));
+          }, 2200);
+        }, 400);
+      }
+    }, 300);
+  }, 150);
+}
+
+// ─────────────────────────────────────────
+// FULLSCREEN TERMINAL
+// ─────────────────────────────────────────
+function makeTermFullscreen(on) {
+  const wrap = document.getElementById('term-panel');
+  if (!wrap) return;
+  if (on) {
+    wrap.classList.add('fullscreen');
+    document.body.style.overflow = 'hidden';
+  } else {
+    wrap.classList.remove('fullscreen');
+    document.body.style.overflow = '';
+  }
+  const btn = document.getElementById('term-fs-btn');
+  if (btn) btn.textContent = wrap.classList.contains('fullscreen') ? '⊠' : '⛶';
+  // Resize terminal
+  if (fitAddon && termReady) {
+    setTimeout(() => {
+      fitAddon.fit();
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: 'resize', cols: term.cols, rows: term.rows }));
+      }
+    }, 100);
+  }
+}
+
+// ─────────────────────────────────────────
+// THEME TOGGLE
+// ─────────────────────────────────────────
+function toggleTheme() {
+  const root = document.documentElement;
+  const current = root.getAttribute('data-theme');
+  const isDark = current === 'dark' || (!current && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  const next = isDark ? 'light' : 'dark';
+  root.setAttribute('data-theme', next);
+  localStorage.setItem('chebvpn_theme', next);
+  document.getElementById('theme-toggle').textContent = next === 'dark' ? '🌙' : '☀️';
+}
+
+// Init theme on load
+(function() {
+  const saved = localStorage.getItem('chebvpn_theme');
+  if (saved) {
+    document.documentElement.setAttribute('data-theme', saved);
+    const btn = document.getElementById('theme-toggle');
+    if (btn) btn.textContent = saved === 'dark' ? '🌙' : '☀️';
+  }
+})();
 
 // ─────────────────────────────────────────
 // INIT
 // ─────────────────────────────────────────
+loadTasksLocal();
 renderMap();
 window.addEventListener('resize',renderMap);
+// Backdrop click на modal — DOM уже готов
+window.addEventListener('DOMContentLoaded',()=>{
+  const m=document.getElementById('task-modal');
+  if(m) m.addEventListener('click',e=>{ if(e.target===m) closeTaskModal(); });
+});
 </script>
+
+<!-- TASK WORKSPACE (full-screen, Linear-style) -->
+<style>
+#task-modal{display:none;position:fixed;inset:0;z-index:2000;background:#0b0b0f;flex-direction:column;font-family:'Onest',sans-serif;}
+#tm-topbar{height:48px;background:#111116;border-bottom:1px solid #1e1e28;display:flex;align-items:center;padding:0 20px;gap:12px;flex-shrink:0;}
+#tm-back{background:none;border:1px solid #1e1e28;color:#6a7a8a;font-size:12px;padding:5px 12px;border-radius:6px;cursor:pointer;display:flex;align-items:center;gap:6px;font-family:'Onest',sans-serif;transition:all .15s;}
+#tm-back:hover{border-color:#3a4a5a;color:#a0b0c0;}
+#tm-breadcrumb{font-size:12px;color:#3a4a5a;display:flex;align-items:center;gap:6px;}
+#tm-breadcrumb span{color:#5a6a7a;}
+#tm-topbar-actions{margin-left:auto;display:flex;gap:8px;}
+#tm-body{flex:1;overflow-y:auto;display:flex;min-height:0;}
+#tm-sidebar{width:240px;flex-shrink:0;border-right:1px solid #1a1a24;padding:28px 20px;display:flex;flex-direction:column;gap:20px;}
+#tm-main{flex:1;padding:36px 48px;max-width:860px;overflow-y:auto;}
+.tm-field-label{font-size:10px;color:#3a4a5a;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;}
+.tm-field-val{font-size:13px;color:#8a9aaa;line-height:1.5;}
+.tm-status-badge{display:inline-flex;align-items:center;gap:5px;font-size:12px;padding:4px 12px;border-radius:6px;font-weight:500;}
+.tm-divider{height:1px;background:#1a1a24;margin:4px 0;}
+#tm-title-edit{font-size:24px;font-weight:700;color:#d8e8f8;font-family:'Unbounded',sans-serif;line-height:1.3;background:none;border:none;outline:none;width:100%;margin-bottom:24px;caret-color:#00D4FF;}
+#tm-desc-section{margin-bottom:28px;}
+#tm-desc-section .tm-field-label{font-size:11px;margin-bottom:10px;}
+#tm-desc-text{font-size:14px;color:#6a8aaa;line-height:1.7;padding:14px;background:#0f0f18;border:1px solid #1a1a28;border-radius:8px;}
+#tm-notes-section .tm-field-label{font-size:11px;margin-bottom:10px;}
+#tm-notes{width:100%;min-height:140px;background:#0f0f18;border:1px solid #1a1a28;border-radius:8px;color:#a0b8cc;font-family:'Onest',sans-serif;font-size:13px;padding:14px;resize:vertical;outline:none;line-height:1.6;transition:border-color .2s;}
+#tm-notes:focus{border-color:#00D4FF33;}
+#tm-notes::placeholder{color:#2a3a4a;}
+.tm-start-btn{width:100%;padding:11px;background:#131320;border:1px solid #2a2a40;color:#00D4FF;font-family:'Onest',sans-serif;font-size:13px;font-weight:500;border-radius:8px;cursor:pointer;transition:all .2s;text-align:center;margin-top:4px;}
+.tm-start-btn:hover{background:#1a1a2e;border-color:#00D4FF66;box-shadow:0 0 12px #00D4FF18;}
+.tm-done-btn{width:100%;padding:9px;background:none;border:1px solid #1e2e1e;color:#44aa66;font-family:'Onest',sans-serif;font-size:12px;border-radius:8px;cursor:pointer;transition:all .2s;text-align:center;}
+.tm-done-btn:hover{background:#0a1a0a;border-color:#44aa6688;}
+</style>
+<div id="task-modal">
+  <!-- Top bar -->
+  <div id="tm-topbar">
+    <button id="tm-back" onclick="closeTaskModal()">← Назад</button>
+    <div id="tm-breadcrumb">
+      <span>CHEB VPN</span> / <span id="tm-breadcrumb-branch"></span>
+    </div>
+    <div id="tm-topbar-actions">
+      <span id="tm-status" class="tm-status-badge"></span>
+    </div>
+  </div>
+  <!-- Body: sidebar + main -->
+  <div id="tm-body">
+    <!-- Sidebar -->
+    <div id="tm-sidebar">
+      <div>
+        <div class="tm-field-label">Статус</div>
+        <div id="tm-status-val" class="tm-field-val"></div>
+      </div>
+      <div class="tm-divider"></div>
+      <div>
+        <div class="tm-field-label">Приоритет</div>
+        <div id="tm-priority-val" class="tm-field-val">—</div>
+      </div>
+      <div class="tm-divider"></div>
+      <div>
+        <div class="tm-field-label">Раздел</div>
+        <div id="tm-branch-val" class="tm-field-val"></div>
+      </div>
+      <div style="flex:1;"></div>
+      <button class="tm-start-btn" onclick="openTaskInTerminal()">🚀 Начать в терминале</button>
+      <button class="tm-done-btn" onclick="setTaskDone()">✅ Отметить готово</button>
+    </div>
+    <!-- Main content -->
+    <div id="tm-main">
+      <div id="tm-title-disp" style="font-size:22px;font-weight:700;color:#d0e0f0;font-family:'Unbounded',sans-serif;line-height:1.35;margin-bottom:28px;"></div>
+
+      <div id="tm-desc-section">
+        <div class="tm-field-label">Описание</div>
+        <div id="tm-desc-text" class="tm-field-val"></div>
+      </div>
+
+      <div id="tm-notes-section">
+        <div class="tm-field-label">Заметки</div>
+        <textarea id="tm-notes" placeholder="Что важно помнить по этой задаче..." oninput="saveTaskNote(this.value)"></textarea>
+      </div>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
