@@ -1,0 +1,1327 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CHEB VPN — Mind Map</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;700&family=Onest:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.min.css"/>
+<script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#080C10;color:#e0e8f0;font-family:'Onest',sans-serif;overflow:hidden;height:100vh;width:100vw;user-select:none}
+#header{position:fixed;top:0;left:0;right:0;height:48px;background:rgba(8,12,16,.95);backdrop-filter:blur(12px);border-bottom:1px solid #00D4FF1a;display:flex;align-items:center;padding:0 20px;z-index:300;gap:14px}
+.logo{font-family:'Unbounded',sans-serif;font-size:15px;font-weight:700;color:#00D4FF;letter-spacing:.5px}
+.subtitle{font-size:11px;color:#3a5a7a}
+.legend{margin-left:auto;display:flex;gap:14px;align-items:center}
+.li{display:flex;align-items:center;gap:5px;font-size:10px;color:#3a5a7a}
+.ld{width:7px;height:7px;border-radius:50%}
+#map-svg{position:fixed;top:48px;left:0;right:0;bottom:34px;cursor:grab;overflow:hidden}
+#map-svg:active{cursor:grabbing}
+.node{cursor:pointer}
+.node-circle{transition:filter .2s}
+.node:hover .node-circle{filter:brightness(1.4)!important}
+.node.selected .node-circle{filter:brightness(1.6) drop-shadow(0 0 10px currentColor)!important}
+.lnk{fill:none;stroke-linecap:round}
+/* drawer */
+#drawer{position:fixed;right:-440px;top:48px;width:420px;height:calc(100vh - 82px);background:#0a1420;border-left:1px solid #00D4FF18;transition:right .3s cubic-bezier(.4,0,.2,1);overflow-y:auto;z-index:200;padding:26px 22px 40px}
+#drawer.open{right:0}
+#dc{position:sticky;top:-26px;background:#0a1420;padding:0 0 16px;z-index:10;border-bottom:1px solid #0d1e30;margin-bottom:20px}
+#dx{position:absolute;top:0;right:0;background:none;border:1px solid #00D4FF30;color:#00D4FF;width:26px;height:26px;border-radius:50%;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;transition:all .2s}
+#dx:hover{background:#00D4FF22}
+#d-icon{font-size:28px;margin-bottom:6px}
+#d-title{font-family:'Unbounded',sans-serif;font-size:17px;font-weight:600;color:#fff;margin-bottom:5px;padding-right:32px}
+#d-desc{font-size:12px;color:#4a6a8a;line-height:1.5}
+.sec{margin-bottom:18px}
+.sec-title{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1.8px;color:#2a4a6a;margin-bottom:9px;padding-bottom:6px;border-bottom:1px solid #0f1e2e}
+.task{display:flex;align-items:flex-start;gap:9px;padding:9px 11px;border-radius:8px;margin-bottom:5px;background:#0d1a28;border:1px solid transparent;transition:border-color .15s,background .15s;cursor:default;align-items:flex-start}
+.task:hover{border-color:#00D4FF22;background:#112030}
+.ts{font-size:14px;flex-shrink:0;margin-top:1px}
+.ti{flex:1;min-width:0}
+.tl{font-size:12px;font-weight:500;color:#b0cce0;margin-bottom:2px;line-height:1.4}
+.td{font-size:11px;color:#3a5a7a;line-height:1.4;margin-top:3px}
+.pb{display:inline-block;font-size:9px;padding:2px 5px;border-radius:3px;font-weight:600;margin-top:3px}
+.ph{background:#3d1515;color:#ff6b6b}
+.pm{background:#2d2a10;color:#ffd166}
+.pl{background:#0d2d1a;color:#6bff9c}
+.icard{background:#0d1a28;border:1px solid #152030;border-radius:8px;padding:11px 13px;margin-bottom:7px}
+.il{font-size:10px;color:#2a4a6a;margin-bottom:3px;text-transform:uppercase;letter-spacing:1px}
+.iv{font-size:12px;color:#8ab0c8;word-break:break-all}
+.abtn{display:flex;align-items:center;gap:8px;width:100%;padding:11px 14px;background:linear-gradient(135deg,#03304a,#04486a);border:1px solid #00D4FF33;border-radius:8px;color:#00D4FF;font-family:'Onest',sans-serif;font-size:12px;font-weight:500;cursor:pointer;margin-bottom:7px;transition:all .2s;text-align:left}
+.abtn:hover{background:linear-gradient(135deg,#044060,#065880);border-color:#00D4FF66;box-shadow:0 0 14px #00D4FF18}
+/* stats */
+#sbar{position:fixed;bottom:0;left:0;right:0;height:34px;background:rgba(8,12,16,.97);border-top:1px solid #00D4FF0d;display:flex;align-items:center;padding:0 18px;gap:20px;z-index:300;font-size:10px;color:#2a4a6a}
+.si{display:flex;align-items:center;gap:5px}
+.si b{color:#00D4FF;font-weight:600}
+#hint{margin-left:auto;font-size:10px;color:#1a3050}
+/* center pulse */
+@keyframes pulse{0%,100%{opacity:.35}50%{opacity:.7}}
+.cpulse{animation:pulse 3s ease-in-out infinite}
+/* search */
+#search-wrap{position:fixed;top:58px;left:50%;transform:translateX(-50%);z-index:250;display:none}
+#search-wrap.visible{display:block}
+#search{background:#0d1a28;border:1px solid #00D4FF44;border-radius:8px;padding:8px 14px;color:#e0e8f0;font-family:'Onest',sans-serif;font-size:13px;width:280px;outline:none}
+#search::placeholder{color:#2a4a6a}
+/* ── Terminal panel ──────────────────────────────── */
+#term-panel{position:fixed;bottom:34px;left:0;right:0;height:0;background:#020609;border-top:2px solid #00D4FF33;z-index:350;transition:height .3s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;overflow:hidden}
+#term-panel.open{height:50vh}
+#term-topbar{height:38px;background:#040c14;border-bottom:1px solid #00D4FF1a;display:flex;align-items:center;padding:0 14px;gap:10px;flex-shrink:0}
+#term-task-label{flex:1;font-size:11px;color:#4a8ab0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#term-task-label b{color:#a0d4f0}
+.tbtn{background:none;border:1px solid #1a3050;color:#4a6a8a;font-size:10px;padding:3px 9px;border-radius:4px;cursor:pointer;transition:all .15s;font-family:'Onest',sans-serif}
+.tbtn:hover{border-color:#00D4FF55;color:#a0c4dc}
+#term-inner{flex:1;padding:6px 4px 4px 10px;overflow:hidden}
+#term-inner .xterm{height:100%}
+#term-auth-screen{position:absolute;inset:0;background:#020609;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:10}
+#term-auth-screen.hidden{display:none}
+#term-auth-title{font-family:'Unbounded',sans-serif;font-size:13px;color:#00D4FF}
+#term-token-input{background:#0a1828;border:1px solid #00D4FF44;border-radius:8px;padding:9px 16px;color:#e0e8f0;font-family:'Onest',sans-serif;font-size:13px;width:340px;outline:none;text-align:center}
+#term-token-input::placeholder{color:#2a4a6a}
+#term-connect-btn{background:linear-gradient(135deg,#003d5c,#005a7a);border:1px solid #00D4FF44;border-radius:8px;color:#00D4FF;font-family:'Onest',sans-serif;font-size:13px;font-weight:500;padding:9px 28px;cursor:pointer;transition:all .2s}
+#term-connect-btn:hover{background:linear-gradient(135deg,#004d72,#006d92);box-shadow:0 0 16px #00D4FF22}
+#term-err{font-size:11px;color:#ff6b6b;min-height:16px}
+/* header btn */
+.hbtn{background:none;border:1px solid #00D4FF33;color:#a0c4dc;font-family:'Onest',sans-serif;font-size:11px;padding:5px 12px;border-radius:6px;cursor:pointer;transition:all .2s;white-space:nowrap}
+.hbtn:hover{border-color:#00D4FF88;color:#00D4FF;background:#00D4FF11}
+.hbtn.active{border-color:#00D4FF;color:#00D4FF;background:#00D4FF18}
+/* kanban overlay */
+#kb-overlay{position:fixed;inset:0;background:rgba(4,8,14,.97);z-index:400;display:none;flex-direction:column}
+#kb-overlay.open{display:flex}
+#kb-header{height:52px;border-bottom:1px solid #00D4FF1a;display:flex;align-items:center;padding:0 24px;gap:16px;flex-shrink:0}
+#kb-title{font-family:'Unbounded',sans-serif;font-size:14px;font-weight:600;color:#00D4FF}
+#kb-filters{display:flex;gap:8px;align-items:center;margin-left:8px}
+.kf-btn{background:none;border:1px solid #1a3050;color:#4a6a8a;font-family:'Onest',sans-serif;font-size:11px;padding:4px 10px;border-radius:5px;cursor:pointer;transition:all .15s}
+.kf-btn:hover{border-color:#00D4FF55;color:#a0c4dc}
+.kf-btn.on{border-color:#00D4FF;color:#00D4FF;background:#00D4FF15}
+#kb-branch-filter{background:#0a1520;border:1px solid #1a3050;color:#a0c4dc;font-family:'Onest',sans-serif;font-size:11px;padding:4px 10px;border-radius:5px;outline:none;cursor:pointer}
+#kb-branch-filter option{background:#0a1520}
+#kb-search{background:#0a1520;border:1px solid #1a3050;color:#e0e8f0;font-family:'Onest',sans-serif;font-size:11px;padding:4px 12px;border-radius:5px;outline:none;width:180px}
+#kb-search::placeholder{color:#2a4a6a}
+#kb-close{margin-left:auto;background:none;border:1px solid #00D4FF33;color:#00D4FF;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;transition:all .2s}
+#kb-close:hover{background:#00D4FF22}
+#kb-body{flex:1;overflow-x:auto;overflow-y:hidden;padding:20px 24px;display:flex;gap:16px}
+.kb-col{flex:0 0 280px;display:flex;flex-direction:column;gap:0}
+.kb-col-head{padding:10px 14px;border-radius:8px 8px 0 0;font-size:11px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;display:flex;align-items:center;justify-content:space-between}
+.kb-col-body{flex:1;overflow-y:auto;background:#080e18;border:1px solid #0d1e30;border-top:none;border-radius:0 0 8px 8px;padding:10px;display:flex;flex-direction:column;gap:8px;min-height:200px}
+.kb-col-body::-webkit-scrollbar{width:4px}
+.kb-col-body::-webkit-scrollbar-track{background:transparent}
+.kb-col-body::-webkit-scrollbar-thumb{background:#1a3050;border-radius:2px}
+/* urgent col */
+.kb-col.urgent .kb-col-head{background:#2a0808;color:#ff6b6b;border:1px solid #ff555533}
+.kb-col.urgent .kb-col-body{border-color:#ff555522}
+/* active col */
+.kb-col.active .kb-col-head{background:#1e1a08;color:#ffd166;border:1px solid #ffd16633}
+.kb-col.active .kb-col-body{border-color:#ffd16622}
+/* todo col */
+.kb-col.todo .kb-col-head{background:#081828;color:#5a9abf;border:1px solid #00D4FF22}
+.kb-col.todo .kb-col-body{border-color:#00D4FF11}
+/* done col */
+.kb-col.done .kb-col-head{background:#081e12;color:#55cc88;border:1px solid #55cc8833}
+.kb-col.done .kb-col-body{border-color:#55cc8822}
+/* task card */
+.kcard{background:#0d1828;border:1px solid #112238;border-radius:8px;padding:11px 13px;cursor:pointer;transition:all .18s;user-select:none}
+.kcard:hover{border-color:#00D4FF44;background:#0f2035;transform:translateY(-1px);box-shadow:0 4px 16px rgba(0,212,255,.08)}
+.kcard-title{font-size:12px;font-weight:500;color:#c0d8ec;line-height:1.4;margin-bottom:7px}
+.kcard-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.kcard-branch{font-size:9px;padding:2px 6px;border-radius:3px;font-weight:500;background:#0a1828;color:#4a7a9a;border:1px solid #152a40}
+.kcard-desc{font-size:10px;color:#3a5a7a;line-height:1.4;margin-top:6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.kb-empty{font-size:11px;color:#1a3050;text-align:center;padding:30px 10px}
+.kb-count{background:rgba(0,0,0,.3);border-radius:10px;padding:1px 7px;font-size:10px}
+/* view toggle */
+#kb-view-toggle{display:flex;gap:4px;margin-left:4px}
+.vt-btn{background:none;border:1px solid #1a3050;color:#3a5a7a;font-size:10px;padding:3px 8px;border-radius:4px;cursor:pointer;transition:all .15s}
+.vt-btn.on{border-color:#00D4FF55;color:#00D4FF;background:#00D4FF11}
+/* list view */
+#kb-list{flex:1;overflow-y:auto;padding:16px 24px;display:none;flex-direction:column;gap:6px}
+#kb-list.show{display:flex}
+#kb-body.list-mode{display:none}
+.lcard{display:flex;align-items:flex-start;gap:12px;padding:10px 14px;background:#080e18;border:1px solid #0d1e30;border-radius:8px;cursor:pointer;transition:all .15s}
+.lcard:hover{border-color:#00D4FF33;background:#0c1828}
+.lcard-status{font-size:16px;flex-shrink:0}
+.lcard-body{flex:1;min-width:0}
+.lcard-title{font-size:12px;font-weight:500;color:#c0d8ec;margin-bottom:4px}
+.lcard-meta{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.lcard-branch{font-size:10px;color:#3a5a7a}
+</style>
+</head>
+<body>
+
+<div id="header">
+  <div class="logo">CHEB VPN</div>
+  <div class="subtitle">Project Mind Map</div>
+  <button class="hbtn" id="btn-kanban" onclick="openKanban()">📋 Все задачи</button>
+  <button class="hbtn" id="btn-term" onclick="toggleTerminal()">⚡ Терминал</button>
+  <div class="legend">
+    <div class="li"><div class="ld" style="background:#ff5555"></div>Срочно</div>
+    <div class="li"><div class="ld" style="background:#ffd166"></div>Активно</div>
+    <div class="li"><div class="ld" style="background:#00aaff"></div>В процессе</div>
+    <div class="li"><div class="ld" style="background:#55cc88"></div>Готово</div>
+    <div class="li"><div class="ld" style="background:#2a4a6a"></div>Планируется</div>
+  </div>
+</div>
+
+<!-- KANBAN OVERLAY -->
+<div id="kb-overlay">
+  <div id="kb-header">
+    <div id="kb-title">📋 Все задачи</div>
+    <div id="kb-view-toggle">
+      <button class="vt-btn on" id="vt-kanban" onclick="setView('kanban')">Канбан</button>
+      <button class="vt-btn" id="vt-list" onclick="setView('list')">Список</button>
+    </div>
+    <div id="kb-filters">
+      <select id="kb-branch-filter" onchange="renderKanban()">
+        <option value="">Все ветви</option>
+      </select>
+      <input id="kb-search" placeholder="🔍 Поиск задачи..." oninput="renderKanban()">
+      <button class="kf-btn on" data-s="urgent" onclick="toggleFilter(this)">🚨 Срочные</button>
+      <button class="kf-btn on" data-s="active" onclick="toggleFilter(this)">🟡 Активные</button>
+      <button class="kf-btn on" data-s="todo" onclick="toggleFilter(this)">🔵 Планируется</button>
+      <button class="kf-btn on" data-s="done" onclick="toggleFilter(this)">✅ Готово</button>
+    </div>
+    <button id="kb-close" onclick="closeKanban()">✕</button>
+  </div>
+  <!-- kanban columns -->
+  <div id="kb-body">
+    <div class="kb-col urgent">
+      <div class="kb-col-head">🚨 Срочно <span class="kb-count" id="kc-urgent">0</span></div>
+      <div class="kb-col-body" id="kl-urgent"></div>
+    </div>
+    <div class="kb-col active">
+      <div class="kb-col-head">🟡 В работе <span class="kb-count" id="kc-active">0</span></div>
+      <div class="kb-col-body" id="kl-active"></div>
+    </div>
+    <div class="kb-col todo">
+      <div class="kb-col-head">🔵 Планируется <span class="kb-count" id="kc-todo">0</span></div>
+      <div class="kb-col-body" id="kl-todo"></div>
+    </div>
+    <div class="kb-col done">
+      <div class="kb-col-head">✅ Готово <span class="kb-count" id="kc-done">0</span></div>
+      <div class="kb-col-body" id="kl-done"></div>
+    </div>
+  </div>
+  <!-- list view -->
+  <div id="kb-list"></div>
+</div>
+
+<svg id="map-svg">
+  <defs>
+    <filter id="glow-sm"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="glow-lg"><feGaussianBlur stdDeviation="10" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <radialGradient id="cg" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#00D4FF" stop-opacity=".25"/>
+      <stop offset="100%" stop-color="#00D4FF" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <g id="root-g"></g>
+</svg>
+
+<div id="drawer">
+  <div id="dc">
+    <button id="dx">✕</button>
+    <div id="d-icon"></div>
+    <div id="d-title"></div>
+    <div id="d-desc"></div>
+  </div>
+  <div id="d-body"></div>
+</div>
+
+<!-- TERMINAL PANEL -->
+<div id="term-panel">
+  <div id="term-auth-screen">
+    <div id="term-auth-title">🔐 CHEB VPN Terminal</div>
+    <input id="term-token-input" type="password" placeholder="Введи токен доступа..." autocomplete="off"/>
+    <button id="term-connect-btn" onclick="termConnect()">Подключиться</button>
+    <div id="term-err"></div>
+  </div>
+  <div id="term-topbar">
+    <span style="font-size:11px;color:#00D4FF;font-weight:600">⚡ Terminal</span>
+    <span id="term-task-label"></span>
+    <button class="tbtn" onclick="termSendClaude()" title="Запустить claude">claude</button>
+    <button class="tbtn" onclick="termClear()">clear</button>
+    <button class="tbtn" style="color:#ff6b6b;border-color:#3d1515" onclick="closeTerminal()">✕ закрыть</button>
+  </div>
+  <div id="term-inner"></div>
+</div>
+
+<div id="sbar">
+  <div class="si">🚨 Срочных: <b id="st-u">0</b></div>
+  <div class="si">🟡 Активных: <b id="st-a">0</b></div>
+  <div class="si">✅ Готово: <b id="st-d">0</b></div>
+  <div class="si">🔵 Планируется: <b id="st-t">0</b></div>
+  <div id="hint">Скролл = zoom · Тащи карту · Клик на узел = детали</div>
+</div>
+
+<script>
+// ─────────────────────────────────────────
+// DATA
+// ─────────────────────────────────────────
+const D = {
+  id:'root', label:'CHEB\nVPN', icon:'🛡', color:'#00D4FF', angle:0, dist:0,
+  description:'VPN сервис на базе VLESS Reality. Telegram-бот + веб-кабинет. Оплата ЮKassa и Telegram Stars.',
+  info:[
+    {l:'Сайт',v:'chebvpn.ru'},
+    {l:'Сервер',v:'Aeza · 104.238.29.173 · Ubuntu 24.04 · 2GB RAM'},
+    {l:'Протокол',v:'VLESS Reality · порт 443 · SNI microsoft.com'},
+    {l:'Бот',v:'@chebvpn_bot · aiogram · vpn_bot.service'},
+    {l:'Бэкенд',v:'FastAPI · chebvpn.service · порт 8000'},
+    {l:'Платежи',v:'ЮKassa (₽) + Telegram Stars ⭐'},
+    {l:'iOS приложение',v:'Happ (App Store)'},
+  ],
+  children:[
+
+// ═══ 1. РАЗРАБОТКА ═══
+{
+  id:'dev', label:'Разработка', icon:'🛠', color:'#4A90D9', angle:-90, dist:210,
+  description:'Технический стек: FastAPI, aiogram, SQLite, X-UI 3x-ui v2.8.11, Xray v26.2.6',
+  children:[
+    {
+      id:'dev-bot', label:'Telegram\nБот', icon:'🤖', color:'#4A90D9', angle:-140, dist:170,
+      description:'Бот для управления подпиской. Оплата Stars и ЮKassa. /start, профиль, поддержка.',
+      info:[{l:'Файл',v:'/root/vpn_bot/bot.py'},{l:'БД',v:'/root/vpn_bot/vpn_bot.db (SQLite)'},{l:'Сервис',v:'vpn_bot.service'}],
+      tasks:[
+        {s:'inprogress',p:'high',l:'Привязка телефона / email к аккаунту',d:'✅ Код реализован (database.py + bot.py + webhook_server.py). 🔧 Баг: кнопка "Привязать контакт" не отвечает — требует проверки после рестарта бота. Подзадачи: кнопка "Позже" с напоминанием через 24ч.'},
+        {s:'todo',p:'medium',l:'Кнопка "Позже" → напоминание через 24ч',d:'Вместо "Пропустить" — кнопка "Позже". Через 24ч бот повторно напоминает о привязке.'},
+        {s:'todo',p:'medium',l:'Рассылка о привязке телефона всем активным',d:'Разослать inline-кнопку "Привяжи телефон" всем кто уже купил'},
+        {s:'todo',p:'low',l:'Реферальная программа в боте',d:'Промокод или реферальная ссылка. Бонус за приглашённого друга.'},
+        {s:'todo',p:'low',l:'Напоминание за 3 дня до конца подписки',d:'Авто-уведомление: "Подписка истекает через 3 дня, продли!"'},
+        {s:'done',l:'Синхронизация кабинетов бот↔сайт при оплате'},
+        {s:'done',l:'Фикс бага: при продлении удалялся sub_id (2026-04-12)'},
+        {s:'done',l:'Inline кнопка "Открыть веб-кабинет"'},
+        {s:'done',l:'Оплата Telegram Stars ⭐'},
+      ]
+    },
+    {
+      id:'dev-site', label:'Сайт /\nКабинет', icon:'🌐', color:'#4A90D9', angle:-95, dist:170,
+      description:'Лендинг + личный кабинет. FastAPI + SQLAlchemy + SQLite. Авторизация по звонку (sms.ru).',
+      info:[
+        {l:'Лендинг',v:'/var/www/chebvpn/index.html'},
+        {l:'Кабинет',v:'/var/www/chebvpn/dashboard.html'},
+        {l:'API',v:'/var/www/chebvpn-backend/main.py'},
+        {l:'Авторизация',v:'/var/www/chebvpn-backend/phone_auth.py'},
+        {l:'Тарифы',v:'/var/www/chebvpn-backend/payments.py → PLANS'},
+      ],
+      tasks:[
+        {s:'active',p:'medium',l:'Авторизация через Email',d:'Добавить вход по email как альтернативу телефону — защита от потери доступа'},
+        {s:'active',p:'medium',l:'Уведомления об оплате через сайт → Telegram',d:'При оплате через сайт слать уведомление админу как в боте (💰 новая / 🔄 повторная)'},
+        {s:'todo',p:'medium',l:'Страница восстановления доступа',d:'Форма: ввести sub_id или телефон → получить ключ подписки. На случай потери Telegram.'},
+        {s:'todo',p:'low',l:'Личный кабинет: показывать использованный трафик',d:'Брать из X-UI API: сколько трафика потрачено за текущий период'},
+        {s:'todo',p:'low',l:'Реферальный кабинет на сайте',d:'Страница с реферальной ссылкой, статистикой приглашённых'},
+        {s:'done',l:'Авторизация через звонок sms.ru (CHEBVPN.RU, 0.6₽/звонок)'},
+        {s:'done',l:'Тарифы 1м/3м/6м: 159₽ / 387₽ / 636₽'},
+        {s:'done',l:'Фавикон, логотип, единый navbar'},
+      ]
+    },
+    {
+      id:'dev-infra', label:'Серверы /\nИнфра', icon:'🖥', color:'#4A90D9', angle:-50, dist:170,
+      description:'Серверная инфраструктура: VPN-сервер, Nginx, SSL, бэкапы.',
+      info:[
+        {l:'Новый сервер (Aeza, активен)',v:'104.238.29.173 · 1 CPU · 2GB RAM · 30GB'},
+        {l:'Старый сервер (VDSina)',v:'⚠️ Истекает 2026-04-15!'},
+        {l:'X-UI панель',v:'https://104.238.29.173:54321/7YUvRylI2F/'},
+        {l:'WARP',v:'Proxy mode · socks5://127.0.0.1:40000 → Cloudflare IP'},
+        {l:'SSL',v:"Let's Encrypt для IP · авто-обновление каждые 6 дней"},
+        {l:'Бэкапы',v:'/root/backups/ · каждые 6 часов'},
+      ],
+      tasks:[
+        {s:'urgent',p:'high',l:'⚠️ Старый сервер VDSina истекает 15.04.2026',d:'Убедиться что ВСЕ пользователи переведены на новый сервер до этой даты'},
+        {s:'active',p:'high',l:'Сменить пароль root на новом сервере',d:'Пароль был случайно отправлен в чат 2026-04-01. Срочно сменить!'},
+        {s:'todo',p:'medium',l:'Мониторинг uptime сервера',d:'Настроить алерт в Telegram если сервер упал (uptimerobot.com или аналог)'},
+        {s:'todo',p:'low',l:'Второй резервный сервер',d:'На случай падения основного — горячий резерв с автопереключением'},
+        {s:'done',l:'Миграция на Aeza · VLESS Reality · WARP · SSL'},
+        {s:'done',l:'SSH keepalive + tmux автоподключение (2026-04-12)'},
+        {s:'done',l:'Бэкапы каждые 6ч в /root/backups/'},
+      ]
+    },
+    {
+      id:'dev-sec', label:'Безопасность', icon:'🔒', color:'#4A90D9', angle:-30, dist:175,
+      description:'Безопасность API, платежей, данных пользователей и сервера.',
+      tasks:[
+        {s:'active',p:'medium',l:'Два XUI-клиента при регистрации сайт→бот',d:'Частично решено — нужно полностью протестировать'},
+        {s:'active',p:'medium',l:'Синхронизация БД при продлении',d:'Бот↔сайт при продлении подписки — не протестировано полностью'},
+        {s:'todo',p:'low',l:'Rate limiting на API авторизации',d:'Защита от брутфорса: лимит запросов на /auth/send-code'},
+        {s:'todo',p:'low',l:'Логирование подозрительных действий',d:'Алерт в Telegram при необычной активности (много неудачных входов)'},
+        {s:'done',l:'Подпись вебхука ЮKassa'},
+        {s:'done',l:'Убран debug_token · закрыт порт 2053'},
+        {s:'done',l:'Индексы БД'},
+      ]
+    },
+  ]
+},
+
+// ═══ 2. ПРОДУКТ ═══
+{
+  id:'product', label:'Продукт', icon:'📦', color:'#E67E22', angle:-30, dist:210,
+  description:'Качество и ценность продукта для конечного пользователя.',
+  children:[
+    {
+      id:'prod-vpn', label:'VPN\nПротокол', icon:'⚡', color:'#E67E22', angle:-10, dist:165,
+      description:'VLESS Reality — современный протокол, не детектируется DPI. Скорость и стабильность.',
+      info:[
+        {l:'Протокол',v:'VLESS Reality (xtls-rprx-vision)'},
+        {l:'SNI',v:'microsoft.com · Fingerprint: Chrome'},
+        {l:'UUID',v:'f71d54fd-d37d-452d-a6c5-5f33516673a2'},
+        {l:'Public Key',v:'btdAm_zq7CzqlfH6qWUVy6H4r8vQE6oYi_y0WLnhlh8'},
+      ],
+      tasks:[
+        {s:'todo',p:'medium',l:'Тест скорости и латентности с клиентских устройств',d:'Замерить реальные показатели для использования в маркетинге'},
+        {s:'todo',p:'low',l:'Добавить VLESS WebSocket как fallback',d:'На случай блокировки Reality в отдельных сетях'},
+        {s:'done',l:'VLESS Reality настроен · порт 443 · Cloudflare WARP'},
+      ]
+    },
+    {
+      id:'prod-apps', label:'Приложения', icon:'📱', color:'#E67E22', angle:-40, dist:165,
+      description:'Клиентские приложения для подключения к VPN.',
+      info:[
+        {l:'iOS',v:'Happ · App Store · ID: 6746188973'},
+        {l:'Android',v:'v2rayNG / Hiddify / Nekobox'},
+        {l:'Mac',v:'Hiddify / V2Box'},
+        {l:'Windows',v:'Hiddify / v2rayN'},
+      ],
+      tasks:[
+        {s:'todo',p:'medium',l:'Инструкция по подключению на всех платформах',d:'Пошаговые гайды: iOS, Android, Mac, Windows, Linux. С картинками.'},
+        {s:'todo',p:'low',l:'Видео-инструкция подключения',d:'60 секундное видео как подключить VPN → использовать в маркетинге'},
+        {s:'done',l:'Happ (iOS) — основное рекомендуемое приложение'},
+      ]
+    },
+    {
+      id:'prod-tariffs', label:'Тарифы', icon:'💎', color:'#E67E22', angle:-60, dist:165,
+      description:'Текущие тарифные планы и их позиционирование.',
+      info:[
+        {l:'1 месяц',v:'159₽ / 30 дней'},
+        {l:'3 месяца 🔥',v:'387₽ / 90 дней (129₽/мес, −19%) — Популярный'},
+        {l:'6 месяцев',v:'636₽ / 180 дней (106₽/мес, −33%)'},
+        {l:'Бот: 1м',v:'99₽ / 74⭐'},
+        {l:'Бот: 2м',v:'179₽ / 134⭐'},
+        {l:'Бот: 3м',v:'269₽ / 202⭐'},
+      ],
+      tasks:[
+        {s:'todo',p:'low',l:'Годовой тариф',d:'12 месяцев со скидкой −40%. Увеличивает LTV.'},
+        {s:'todo',p:'low',l:'Пробный период 3 дня',d:'Бесплатный триал для конвертации новых пользователей'},
+        {s:'todo',p:'low',l:'Семейный тариф / несколько устройств',d:'2-3 устройства по одной подписке со скидкой'},
+        {s:'done',l:'Тарифы обновлены (2026-04-01): 1м/3м/6м'},
+      ]
+    },
+    {
+      id:'prod-quality', label:'Качество\nСервиса', icon:'⭐', color:'#E67E22', angle:-20, dist:175,
+      description:'Стабильность, скорость, поддержка пользователей.',
+      tasks:[
+        {s:'todo',p:'medium',l:'SLA: время ответа поддержки < 2 часа',d:'Установить стандарт и настроить авто-ответ в боте'},
+        {s:'todo',p:'medium',l:'Страница статуса сервиса (status page)',d:'status.chebvpn.ru — видно когда сервер в норме/проблема'},
+        {s:'todo',p:'low',l:'NPS опрос у пользователей',d:'Раз в месяц спрашивать "насколько порекомендуете?" через бот'},
+      ]
+    },
+  ]
+},
+
+// ═══ 3. АНАЛИТИКА ═══
+{
+  id:'analytics', label:'Аналитика', icon:'📊', color:'#9B59B6', angle:30, dist:210,
+  description:'Метрики бизнеса: продажи, пользователи, конверсия, трафик.',
+  children:[
+    {
+      id:'an-sales', label:'Продажи /\nВыручка', icon:'💹', color:'#9B59B6', angle:15, dist:170,
+      description:'Отслеживание оплат, MRR, новые vs повторные пользователи.',
+      tasks:[
+        {s:'todo',p:'high',l:'Дашборд выручки (день/неделя/месяц)',d:'График оплат, средний чек, новые vs повторные. Можно в Google Sheets или Metabase.'},
+        {s:'todo',p:'medium',l:'Churn rate — отток пользователей',d:'Сколько % не продлевают подписку → повод улучшать продукт'},
+        {s:'todo',p:'medium',l:'LTV (lifetime value) среднего клиента',d:'Средний доход с одного пользователя за всё время'},
+        {s:'todo',p:'low',l:'Разбивка выручки: бот vs сайт vs Stars',d:'Через какой канал приходит больше денег'},
+      ]
+    },
+    {
+      id:'an-users', label:'Пользователи', icon:'👥', color:'#9B59B6', angle:40, dist:170,
+      description:'Активные подписчики, когорты, использование.',
+      tasks:[
+        {s:'todo',p:'medium',l:'Сколько активных подписок прямо сейчас',d:'Считать из БД: exp_date > NOW()'},
+        {s:'todo',p:'medium',l:'Когда массово истекают подписки',d:'График: сколько истекает на этой неделе/месяце'},
+        {s:'todo',p:'low',l:'Страна / ОС пользователей',d:'Собирать при регистрации для понимания аудитории'},
+      ]
+    },
+    {
+      id:'an-traffic', label:'Трафик VPN', icon:'📡', color:'#9B59B6', angle:55, dist:170,
+      description:'Использование трафика через X-UI API.',
+      info:[{l:'X-UI API',v:'https://104.238.29.173:54321/7YUvRylI2F/'}],
+      tasks:[
+        {s:'todo',p:'medium',l:'Показывать трафик в личном кабинете',d:'Подключить X-UI API: up/down bytes за период'},
+        {s:'todo',p:'low',l:'Топ пользователей по потреблению трафика',d:'Кто качает больше всего — для управления нагрузкой'},
+        {s:'todo',p:'low',l:'Лимиты трафика по тарифу',d:'Опционально: ограничить трафик или сделать это премиум-функцией'},
+      ]
+    },
+    {
+      id:'an-funnel', label:'Воронка', icon:'🔻', color:'#9B59B6', angle:25, dist:175,
+      description:'Конверсия от визита до оплаты.',
+      tasks:[
+        {s:'todo',p:'high',l:'Яндекс Метрика / GA4 на лендинг',d:'Смотреть источники трафика, поведение, отказы'},
+        {s:'todo',p:'medium',l:'Конверсия лендинг → регистрация',d:'Сколько % посетителей регистрируются'},
+        {s:'todo',p:'medium',l:'Конверсия регистрация → первая оплата',d:'Сколько % зарегистрировавшихся покупают'},
+        {s:'todo',p:'low',l:'A/B тест лендинга',d:'Тест разных заголовков / CTA-кнопок'},
+      ]
+    },
+  ]
+},
+
+// ═══ 4. МАРКЕТИНГ ═══
+{
+  id:'marketing', label:'Маркетинг', icon:'📣', color:'#E74C3C', angle:100, dist:210,
+  description:'Привлечение новых пользователей: офлайн, диджитал, реферали.',
+  children:[
+    {
+      id:'mkt-offline', label:'Офлайн', icon:'📋', color:'#E74C3C', angle:75, dist:170,
+      description:'Физические материалы: листовки, стикеры, объявления.',
+      tasks:[
+        {s:'todo',p:'medium',l:'Дизайн листовок с QR-кодом',d:'CHEB VPN стиль (#00D4FF, #080C10). QR → лендинг с UTM'},
+        {s:'todo',p:'medium',l:'UTM / QR аналитика переходов с листовок',d:'Каждая точка = свой QR. Смотреть в Яндекс Метрике'},
+        {s:'todo',p:'low',l:'Стикеры в лифтах, подъездах',d:'Мини-стикер "Заблокировали Instagram? chebvpn.ru"'},
+        {s:'todo',p:'low',l:'Точки распространения',d:'Универы, общаги, кафе, коворкинги в Чебоксарах'},
+      ]
+    },
+    {
+      id:'mkt-seo', label:'SEO', icon:'🔍', color:'#E74C3C', angle:100, dist:170,
+      description:'Органический поиск: Яндекс, Google. Долгосрочный канал.',
+      tasks:[
+        {s:'todo',p:'medium',l:'SEO аудит текущего лендинга',d:'Проверить скорость, мета-теги, заголовки, мобильность'},
+        {s:'todo',p:'medium',l:'Мета-теги: title, description, OG',d:'Каждая страница — уникальный description с ключевиками'},
+        {s:'todo',p:'medium',l:'Статьи-гайды на сайте',d:'"Как обойти блокировки 2025", "Лучший VPN для Telegram" и т.д.'},
+        {s:'todo',p:'medium',l:'Google Search Console + Яндекс Вебмастер',d:'Подключить, отправить sitemap, смотреть позиции'},
+        {s:'todo',p:'low',l:'Регистрация в каталогах VPN-сервисов',d:'vpnmentor.com, trustpilot.com, отзывы на форумах'},
+      ]
+    },
+    {
+      id:'mkt-video', label:'Видео /\nКонтент', icon:'🎬', color:'#E74C3C', angle:120, dist:170,
+      description:'YouTube, Instagram Reels, TikTok. Органика и платный трафик.',
+      tasks:[
+        {s:'todo',p:'medium',l:'Серия Shorts: "Зачем VPN в 2025"',d:'10-30 сек ролики с объяснением. AI озвучка + субтитры.'},
+        {s:'todo',p:'medium',l:'Видеоролик через нейросети',d:'Финальный ролик 60-90 сек для YT/IG/TikTok. Heygen / Sora.'},
+        {s:'todo',p:'medium',l:'Контент-план: 20 идей для видео',d:'"Как разблокировать Instagram", "VPN vs без VPN" и т.д.'},
+        {s:'todo',p:'low',l:'TikTok / Instagram аккаунт CHEB VPN',d:'Завести и начать публиковать Reels / Shorts'},
+        {s:'todo',p:'low',l:'YouTube канал CHEB VPN',d:'Длинные гайды + плейлист инструкций по подключению'},
+      ]
+    },
+    {
+      id:'mkt-bloggers', label:'Блогеры', icon:'🌟', color:'#E74C3C', angle:140, dist:170,
+      description:'Коллаборации с блогерами: VPN, технологии, privacy, игры.',
+      tasks:[
+        {s:'todo',p:'medium',l:'Список 20+ блогеров для аутрича',d:'YT/TikTok/IG: тематика VPN, безопасность, игры, антиблокировки'},
+        {s:'todo',p:'medium',l:'Промокоды для каждого блогера',d:'Уникальный промокод = UTM = понимаем откуда пришли'},
+        {s:'todo',p:'low',l:'Партнёрская программа для блогеров',d:'% от каждой продажи по реферальному коду'},
+      ]
+    },
+    {
+      id:'mkt-retention', label:'Удержание /\nRetention', icon:'🔄', color:'#E74C3C', angle:115, dist:175,
+      description:'Удержание существующих пользователей и повторные продажи.',
+      tasks:[
+        {s:'todo',p:'high',l:'Напоминания за 3 дня до конца подписки',d:'Авто-сообщение в боте + кнопка продления'},
+        {s:'todo',p:'medium',l:'Реферальная программа',d:'"Пригласи друга — получи +7 дней". Увеличивает виральность.'},
+        {s:'todo',p:'medium',l:'Скидка при продлении на длинный срок',d:'"Продли на 6 месяцев — скидка 10%" в момент истечения'},
+        {s:'todo',p:'low',l:'Email-рассылка о новостях сервиса',d:'Ежемесячный дайджест: улучшения, советы, новости про VPN'},
+      ]
+    },
+  ]
+},
+
+// ═══ 5. ПОДДЕРЖКА ═══
+{
+  id:'support', label:'Поддержка', icon:'💬', color:'#1ABC9C', angle:160, dist:210,
+  description:'Клиентская поддержка, FAQ, решение проблем с подключением.',
+  children:[
+    {
+      id:'sup-faq', label:'FAQ /\nБаза знаний', icon:'📖', color:'#1ABC9C', angle:145, dist:165,
+      description:'Документация и самообслуживание для пользователей.',
+      tasks:[
+        {s:'todo',p:'medium',l:'FAQ страница на сайте',d:'"Как подключить VPN", "Не работает — что делать", "Как продлить"'},
+        {s:'todo',p:'medium',l:'Инструкции по подключению на всех ОС',d:'iOS, Android, Mac, Windows, Linux. Скриншоты + видео.'},
+        {s:'todo',p:'low',l:'Бот: команда /help с кнопками-инструкциями',d:'Интерактивное меню поддержки прямо в боте'},
+      ]
+    },
+    {
+      id:'sup-bot', label:'Поддержка\nв боте', icon:'🤝', color:'#1ABC9C', angle:170, dist:165,
+      description:'Обработка обращений в Telegram боте.',
+      tasks:[
+        {s:'todo',p:'medium',l:'Кнопка "Связаться с поддержкой" → пересылка мне',d:'Пользователь пишет боту → приходит мне с контекстом (tg_id, статус подписки)'},
+        {s:'todo',p:'low',l:'Авто-ответ при оффлайне',d:'"Мы получили обращение, ответим в течение 2 часов"'},
+        {s:'todo',p:'low',l:'Типичные проблемы — авто-решение в боте',d:'"VPN не подключается" → бот предлагает: 1. Переустановить конфиг 2. Сменить приложение'},
+      ]
+    },
+  ]
+},
+
+// ═══ 6. AI АГЕНТЫ ═══
+{
+  id:'agents', label:'AI\nАгенты', icon:'🤖', color:'#00D4FF', angle:200, dist:210,
+  description:'Автономные AI агенты для параллельного выполнения задач проекта без твоего участия.',
+  children:[
+    {
+      id:'ag-dev', label:'Dev\nАгент', icon:'⚙️', color:'#00D4FF', angle:185, dist:165,
+      description:'Разработчик: реализует фичи, чинит баги, тестирует код.',
+      tasks:[
+        {s:'todo',p:'high',l:'Авторизация через Email',d:'→ phone_auth.py + dashboard.html + main.py'},
+        {s:'todo',p:'high',l:'Уведомления об оплате сайта в Telegram',d:'→ main.py: webhook ЮKassa → сообщение в bot'},
+        {s:'todo',p:'medium',l:'Страница восстановления доступа по sub_id',d:'→ новый endpoint + страница на сайте'},
+        {s:'todo',p:'medium',l:'Трафик в личном кабинете',d:'→ X-UI API интеграция → dashboard.html'},
+      ]
+    },
+    {
+      id:'ag-seo', label:'SEO\nАгент', icon:'🔍', color:'#00D4FF', angle:205, dist:165,
+      description:'SEO специалист: аудит, мета-теги, контент, аналитика.',
+      tasks:[
+        {s:'todo',p:'medium',l:'Аудит и оптимизация index.html',d:'title, meta description, h1, OG теги, скорость загрузки'},
+        {s:'todo',p:'medium',l:'Sitemap.xml + robots.txt',d:'Правильная индексация для Яндекс и Google'},
+        {s:'todo',p:'medium',l:'3 статьи-гайда для блога',d:'"Лучший VPN 2025 Россия", "Как разблокировать Instagram" и т.д.'},
+        {s:'todo',p:'low',l:'Schema.org разметка',d:'Structured data для лучшего отображения в поиске'},
+      ]
+    },
+    {
+      id:'ag-content', label:'Контент\nАгент', icon:'✍️', color:'#00D4FF', angle:220, dist:165,
+      description:'Контент-маркетинг: тексты, сценарии, посты, описания.',
+      tasks:[
+        {s:'todo',p:'medium',l:'Сценарии для 10 Shorts/Reels',d:'Короткие сценарии 30-60 сек: проблема → решение → CTA'},
+        {s:'todo',p:'medium',l:'Тексты для листовок и стикеров',d:'Цепляющий заголовок + QR + призыв к действию'},
+        {s:'todo',p:'low',l:'Email-шаблоны для рассылки',d:'Приветствие, напоминание о продлении, новости'},
+      ]
+    },
+    {
+      id:'ag-analytics', label:'Аналитика\nАгент', icon:'📈', color:'#00D4FF', angle:200, dist:170,
+      description:'Анализ данных: продажи, конверсия, поведение пользователей.',
+      tasks:[
+        {s:'todo',p:'medium',l:'Дашборд выручки из БД',d:'Читает vpn_bot.db + chebvpn.db → строит отчёт'},
+        {s:'todo',p:'medium',l:'Анализ конкурентов VPN-рынка',d:'Цены, фичи, маркетинг топ-5 конкурентов'},
+        {s:'todo',p:'low',l:'Недельный отчёт в Telegram',d:'Каждое воскресенье: продажи, новые пользователи, выручка'},
+      ]
+    },
+  ]
+},
+
+// ═══ 7. ФИНАНСЫ ═══
+{
+  id:'finance', label:'Финансы', icon:'💰', color:'#2ECC71', angle:250, dist:210,
+  description:'Доходы, расходы, P&L, платёжные системы.',
+  info:[
+    {l:'Платежи RU',v:'ЮKassa · комиссия ~3.5%'},
+    {l:'Платежи Stars',v:'Telegram Stars ⭐ · без комиссии'},
+    {l:'Сервер Aeza',v:'~$/месяц'},
+    {l:'sms.ru (звонки)',v:'0.6₽/звонок · баланс ~292₽'},
+    {l:'Домен chebvpn.ru',v:'~150₽/год'},
+  ],
+  tasks:[
+    {s:'active',p:'medium',l:'Следить за балансом sms.ru (сейчас ~292₽)',d:'Пополнить когда < 50₽. Расход 0.6₽/авторизация.'},
+    {s:'todo',p:'medium',l:'Таблица P&L (доходы минус расходы)',d:'Google Sheets: выручка − серверы − sms.ru − комиссия ЮKassa'},
+    {s:'todo',p:'low',l:'Точка безубыточности',d:'Сколько активных подписок нужно чтобы покрыть расходы'},
+    {s:'todo',p:'low',l:'Прогноз выручки на 3 / 6 месяцев',d:'При текущем росте — сколько заработаем'},
+    {s:'todo',p:'low',l:'Годовой тариф → рост MRR',d:'Пользователи платят сразу за год → стабильная выручка'},
+  ]
+},
+
+// ═══ 8. РОСТ ═══
+{
+  id:'growth', label:'Рост /\nGrowth', icon:'🚀', color:'#F39C12', angle:300, dist:210,
+  description:'Стратегия роста: новые рынки, партнёрства, виральность.',
+  children:[
+    {
+      id:'gr-ref', label:'Реферальная\nПрограмма', icon:'🔗', color:'#F39C12', angle:280, dist:165,
+      description:'Пользователи приводят друзей за бонусы.',
+      tasks:[
+        {s:'todo',p:'medium',l:'Реферальная ссылка в боте',d:'"Пригласи друга → оба получают +7 дней" — виральный механизм'},
+        {s:'todo',p:'medium',l:'Промокоды для ручного распространения',d:'Пользователь делится промокодом — друг получает скидку 20%'},
+        {s:'todo',p:'low',l:'Партнёрская программа (CPA)',d:'Аффилиаты: 30% от первой оплаты приведённого пользователя'},
+      ]
+    },
+    {
+      id:'gr-geo', label:'Новые\nРегионы', icon:'🗺', color:'#F39C12', angle:310, dist:165,
+      description:'Выход за пределы Чебоксар.',
+      tasks:[
+        {s:'todo',p:'low',l:'Тест рекламы в Казани / Нижнем',d:'Небольшой бюджет на офлайн / VK в соседних городах'},
+        {s:'todo',p:'low',l:'Русскоязычная аудитория за рубежом',d:'Эмигранты, студенты за рубежом — нужен VPN для доступа к RU сервисам'},
+      ]
+    },
+    {
+      id:'gr-b2b', label:'B2B /\nПартнёрства', icon:'🤝', color:'#F39C12', angle:325, dist:165,
+      description:'Корпоративные клиенты и партнёры.',
+      tasks:[
+        {s:'todo',p:'low',l:'Корпоративный тариф (5-10 устройств)',d:'Малый бизнес, коворкинги — покупают сразу для команды'},
+        {s:'todo',p:'low',l:'Партнёрство с IT-школами',d:'Студенты IT курсов → скидка 30% на VPN'},
+      ]
+    },
+  ]
+},
+
+// ═══ 9. ПРАВОВОЕ ═══
+{
+  id:'legal', label:'Правовое', icon:'⚖️', color:'#95A5A6', angle:340, dist:210,
+  description:'Юридическая защита: политики, условия, соответствие законам.',
+  tasks:[
+    {s:'todo',p:'medium',l:'Политика конфиденциальности',d:'Чётко описать: что собираем, как храним, кому передаём. Обязательно для ЮKassa.'},
+    {s:'todo',p:'medium',l:'Пользовательское соглашение / ToS',d:'Что можно и нельзя делать с VPN. Отказ от ответственности.'},
+    {s:'todo',p:'low',l:'Страница /privacy и /terms на сайте',d:'Ссылки из футера лендинга'},
+    {s:'done',l:'ЮKassa подключена (подразумевает ИП или самозанятость)'},
+  ]
+},
+
+  ] // end root children
+};
+
+// ─────────────────────────────────────────
+// LAYOUT
+// ─────────────────────────────────────────
+function rad(deg){return deg*Math.PI/180}
+
+function layout(node,px,py,angle,dist,level){
+  node.x = px + Math.cos(rad(angle))*dist;
+  node.y = py + Math.sin(rad(angle))*dist;
+  node.level = level;
+  node._angle = angle;
+  if(!node.children) return;
+  const n = node.children.length;
+  node.children.forEach((c,i)=>{
+    let a;
+    if(level===0){ a = c.angle; }
+    else{
+      const spread = n===1?0:Math.min(70,28*n);
+      a = angle + (n===1?0:-spread/2+i*(spread/(n-1)));
+    }
+    const d = level===0?c.dist:level===1?160:130;
+    layout(c, node.x, node.y, a, d, level+1);
+  });
+}
+
+function flatten(node,par,acc={nodes:[],links:[]}){
+  acc.nodes.push({node,par});
+  if(par) acc.links.push({f:par,t:node});
+  if(node.children) node.children.forEach(c=>flatten(c,node,acc));
+  return acc;
+}
+
+// ─────────────────────────────────────────
+// SVG HELPERS
+// ─────────────────────────────────────────
+const NS='http://www.w3.org/2000/svg';
+function el(tag,attrs={}){
+  const e=document.createElementNS(NS,tag);
+  for(const[k,v] of Object.entries(attrs)) e.setAttribute(k,v);
+  return e;
+}
+
+// ─────────────────────────────────────────
+// RENDER
+// ─────────────────────────────────────────
+const svg=document.getElementById('map-svg');
+const rootG=document.getElementById('root-g');
+let tr={x:0,y:0,s:1};
+let drag=null;
+
+function applyTr(){rootG.setAttribute('transform',`translate(${tr.x},${tr.y}) scale(${tr.s})`)}
+
+function taskCounts(node){
+  const c={u:0,a:0,d:0,t:0};
+  function w(n){
+    (n.tasks||[]).forEach(t=>{
+      if(t.s==='urgent')c.u++;
+      else if(t.s==='active'||t.s==='inprogress')c.a++;
+      else if(t.s==='done')c.d++;
+      else c.t++;
+    });
+    (n.children||[]).forEach(w);
+  }
+  w(node);
+  return c;
+}
+
+function renderMap(){
+  const W=window.innerWidth, H=window.innerHeight-82;
+  svg.setAttribute('width', W);
+  svg.setAttribute('height', H);
+  layout(D, W/2, H/2, 0, 0, 0);
+  D.x=W/2; D.y=H/2;
+
+  const {nodes,links}=flatten(D,null);
+  rootG.innerHTML='';
+
+  // links layer
+  const lg=el('g');
+  links.forEach(({f,t})=>{
+    const color=t.color||'#00D4FF';
+    const mx=(f.x+t.x)/2;
+    const p=el('path',{
+      d:`M ${f.x} ${f.y} C ${mx} ${f.y} ${mx} ${t.y} ${t.x} ${t.y}`,
+      stroke:color+'44','stroke-width':t.level===1?'2':'1.5',fill:'none','stroke-linecap':'round'
+    });
+    lg.appendChild(p);
+  });
+  rootG.appendChild(lg);
+
+  // nodes layer
+  const ng=el('g');
+  nodes.forEach(({node})=>{
+    const g=el('g',{class:'node','data-id':node.id,transform:`translate(${node.x},${node.y})`});
+    const color=node.color||'#00D4FF';
+    const r=node.level===0?48:node.level===1?30:21;
+    const tc=node.level>0?taskCounts(node):null;
+
+    // center glow
+    if(node.level===0){
+      const gl=el('circle',{r:'90',fill:'url(#cg)',class:'cpulse'});
+      g.appendChild(gl);
+    }
+
+    // circle
+    const circ=el('circle',{
+      class:'node-circle',r,
+      fill:node.level===0?color:'#0b1625',
+      stroke:color,'stroke-width':node.level===0?'0':node.level===1?'2':'1.5',
+      filter:node.level===0?'url(#glow-lg)':node.level===1?'url(#glow-sm)':''
+    });
+    g.appendChild(circ);
+
+    // icon
+    if(node.icon){
+      const t=el('text',{
+        'text-anchor':'middle','dominant-baseline':'middle',
+        'font-size':node.level===0?'22':node.level===1?'15':'12',
+        y: node.label.includes('\n')?(node.level===0?-10:-8):0,
+        fill: node.level===0?'#080C10':'#fff'
+      });
+      t.textContent=node.icon;
+      g.appendChild(t);
+    }
+
+    // label lines
+    const lines=node.label.split('\n');
+    const baseY=node.level===0
+      ?(node.icon?10:0)
+      :(r + 13);
+    lines.forEach((ln,i)=>{
+      const t=el('text',{
+        'text-anchor':'middle','dominant-baseline':'middle',
+        'font-size':node.level===0?'12':node.level===1?'10.5':'9.5',
+        'font-weight':node.level<=1?'600':'400',
+        'font-family':node.level===0?"'Unbounded',sans-serif":"'Onest',sans-serif",
+        fill:node.level===0?'#080C10':'#90b8d0',
+        y: node.level===0
+          ?(node.icon?baseY+i*13:baseY+i*13-7)
+          :(baseY+i*11+(lines.length>1?-5:0))
+      });
+      t.textContent=ln;
+      g.appendChild(t);
+    });
+
+    // urgent badge
+    if(tc&&tc.u>0){
+      const bx=r-4, by=-(r-4);
+      g.appendChild(el('circle',{cx:bx,cy:by,r:'9',fill:'#e03030',filter:'url(#glow-sm)'}));
+      const bt=el('text',{x:bx,y:by,'text-anchor':'middle','dominant-baseline':'middle','font-size':'8','fill':'#fff','font-weight':'700'});
+      bt.textContent=tc.u;
+      g.appendChild(bt);
+    }
+
+    // status dots
+    if(tc&&node.level>=1){
+      const items=[
+        ...Array(tc.u).fill('#ff5555'),
+        ...Array(tc.a).fill('#ffd166'),
+        ...Array(tc.d).fill('#55cc88'),
+        ...Array(tc.t).fill('#2a4a6a'),
+      ];
+      if(items.length){
+        const dotY=baseY+(lines.length>1?lines.length*11+4:14);
+        const sp=6;
+        const sx=-(items.length-1)*sp/2;
+        items.forEach((col,i)=>{
+          g.appendChild(el('circle',{cx:sx+i*sp,cy:dotY,r:'2.5',fill:col}));
+        });
+      }
+    }
+
+    g.addEventListener('click',e=>{e.stopPropagation();selectNode(node,g)});
+    ng.appendChild(g);
+  });
+  rootG.appendChild(ng);
+
+  applyTr();
+  updateStats(nodes.map(n=>n.node));
+}
+
+// ─────────────────────────────────────────
+// DRAWER
+// ─────────────────────────────────────────
+let curG=null;
+function selectNode(node,g){
+  if(curG) curG.classList.remove('selected');
+  curG=g; g.classList.add('selected');
+  openDrawer(node);
+}
+
+function se(id){return document.getElementById(id)}
+function statusIcon(s){return{urgent:'🚨',active:'🟡',done:'✅',todo:'🔵'}[s]||'🔵'}
+function pHtml(p){
+  if(!p)return'';
+  const m={high:['ph','Высокий'],medium:['pm','Средний'],low:['pl','Низкий']};
+  const[c,l]=m[p]||['',''];
+  return`<span class="pb ${c}">${l}</span>`;
+}
+
+function collectTasks(node){
+  let t=[];
+  (node.tasks||[]).forEach(x=>t.push({...x,_from:node.label.replace('\n',' ')}));
+  (node.children||[]).forEach(c=>t=t.concat(collectTasks(c)));
+  return t;
+}
+
+function taskGroup(title,tasks){
+  if(!tasks.length)return'';
+  return`<div class="sec"><div class="sec-title">${title} (${tasks.length})</div>`+
+    tasks.map(t=>{
+      const ctx=(t.l+(t.d?' — '+t.d:'')).replace(/'/g,"\\'");
+      const canStart = t.s!=='done';
+      return`<div class="task">
+        <div class="ts">${statusIcon(t.s)}</div>
+        <div class="ti">
+          <div class="tl">${t.l}</div>
+          ${t.d?`<div class="td">${t.d}</div>`:''}
+          <div style="display:flex;align-items:center;gap:6px;margin-top:5px;flex-wrap:wrap">
+            ${pHtml(t.p)}
+            ${canStart?`<button onclick="openTerminal('${ctx}')" style="background:linear-gradient(135deg,#03304a,#044060);border:1px solid #00D4FF33;border-radius:5px;color:#00D4FF;font-size:9px;padding:2px 8px;cursor:pointer;font-family:Onest,sans-serif;transition:all .15s" onmouseover="this.style.borderColor='#00D4FF88'" onmouseout="this.style.borderColor='#00D4FF33'">⚡ Приступить</button>`:''}
+          </div>
+        </div>
+      </div>`;
+    }).join('')+
+  `</div>`;
+}
+
+function openDrawer(node){
+  se('d-icon').textContent=node.icon||'';
+  se('d-title').textContent=node.label.replace('\n',' ');
+  se('d-desc').textContent=node.description||'';
+  let h='';
+
+  if(node.info&&node.info.length){
+    h+=`<div class="sec"><div class="sec-title">Информация</div>`;
+    node.info.forEach(({l,v})=>{
+      h+=`<div class="icard"><div class="il">${l}</div><div class="iv">${v}</div></div>`;
+    });
+    h+=`</div>`;
+  }
+
+  const all=collectTasks(node);
+  h+=taskGroup('🚨 Срочные',all.filter(t=>t.s==='urgent'));
+  h+=taskGroup('🔧 В процессе',all.filter(t=>t.s==='inprogress'));
+  h+=taskGroup('🟡 Активные',all.filter(t=>t.s==='active'));
+  h+=taskGroup('🔵 Планируется',all.filter(t=>t.s==='todo'));
+  h+=taskGroup('✅ Выполнено',all.filter(t=>t.s==='done'));
+
+  const agentNodes=['dev','dev-bot','dev-site','dev-infra','dev-sec','mkt-seo','mkt-video','an-funnel','ag-dev','ag-seo','ag-content','ag-analytics'];
+  if(agentNodes.includes(node.id)){
+    h+=`<div class="sec" style="margin-top:8px;padding-top:16px;border-top:1px solid #0f1e2e">
+      <div class="sec-title">AI Агент</div>
+      <button class="abtn" onclick="openTerminal('${node.label.replace(/\n/,' ')}')">⚡ Приступить к задаче в терминале</button>
+    </div>`;
+  }
+
+  se('d-body').innerHTML=h;
+  se('drawer').classList.add('open');
+}
+
+se('dx').addEventListener('click',()=>{
+  se('drawer').classList.remove('open');
+  if(curG){curG.classList.remove('selected');curG=null;}
+});
+svg.addEventListener('click',()=>{
+  se('drawer').classList.remove('open');
+  if(curG){curG.classList.remove('selected');curG=null;}
+});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){
+    se('drawer').classList.remove('open');
+    if(curG){curG.classList.remove('selected');curG=null;}
+  }
+});
+
+// ─────────────────────────────────────────
+// STATS
+// ─────────────────────────────────────────
+function updateStats(nodes){
+  let u=0,a=0,d=0,t=0;
+  nodes.forEach(n=>{
+    (n.tasks||[]).forEach(x=>{
+      if(x.s==='urgent')u++;
+      else if(x.s==='active'||x.s==='inprogress')a++;
+      else if(x.s==='done')d++;
+      else t++;
+    });
+  });
+  se('st-u').textContent=u;
+  se('st-a').textContent=a;
+  se('st-d').textContent=d;
+  se('st-t').textContent=t;
+}
+
+// ─────────────────────────────────────────
+// PAN & ZOOM
+// ─────────────────────────────────────────
+svg.addEventListener('mousedown',e=>{
+  if(e.target.closest('.node'))return;
+  drag={sx:e.clientX-tr.x,sy:e.clientY-tr.y};
+});
+window.addEventListener('mousemove',e=>{
+  if(!drag)return;
+  tr.x=e.clientX-drag.sx;
+  tr.y=e.clientY-drag.sy;
+  applyTr();
+});
+window.addEventListener('mouseup',()=>drag=null);
+
+svg.addEventListener('wheel',e=>{
+  e.preventDefault();
+  const factor=e.deltaY>0?.88:1.14;
+  const rect=svg.getBoundingClientRect();
+  const mx=e.clientX-rect.left, my=e.clientY-rect.top;
+  tr.x=mx-(mx-tr.x)*factor;
+  tr.y=my-(my-tr.y)*factor;
+  tr.s=Math.max(.2,Math.min(4,tr.s*factor));
+  applyTr();
+},{passive:false});
+
+// touch
+let touches=null;
+svg.addEventListener('touchstart',e=>{
+  if(e.touches.length===1){
+    const t=e.touches[0];
+    drag={sx:t.clientX-tr.x,sy:t.clientY-tr.y};
+  }else if(e.touches.length===2){
+    drag=null;
+    touches={
+      d:Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY),
+      s:tr.s,
+      mx:(e.touches[0].clientX+e.touches[1].clientX)/2,
+      my:(e.touches[0].clientY+e.touches[1].clientY)/2,
+    };
+  }
+},{passive:true});
+svg.addEventListener('touchmove',e=>{
+  e.preventDefault();
+  if(e.touches.length===1&&drag){
+    const t=e.touches[0];
+    tr.x=t.clientX-drag.sx; tr.y=t.clientY-drag.sy; applyTr();
+  }else if(e.touches.length===2&&touches){
+    const nd=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+    const factor=nd/touches.d;
+    tr.s=Math.max(.2,Math.min(4,touches.s*factor));
+    tr.x=touches.mx-(touches.mx-tr.x)*factor/touches.s*touches.s;
+    applyTr();
+  }
+},{passive:false});
+svg.addEventListener('touchend',()=>{drag=null;touches=null;});
+
+// ─────────────────────────────────────────
+// KANBAN
+// ─────────────────────────────────────────
+let kbView='kanban';
+const activeFilters=new Set(['urgent','active','todo','done']);
+
+function allTasksFlat(node,branch,out=[]){
+  const branchName=branch||(node.level===1?node.label.replace('\n',' '):null);
+  const branchColor=branch?null:node.color;
+  (node.tasks||[]).forEach(t=>out.push({
+    ...t,
+    branch:branchName||'CHEB VPN',
+    branchColor:node.color||'#00D4FF',
+    nodeId:node.id
+  }));
+  (node.children||[]).forEach(c=>allTasksFlat(c,branchName||c.label.replace('\n',' '),out));
+  return out;
+}
+
+function populateBranchFilter(){
+  const sel=document.getElementById('kb-branch-filter');
+  const branches=[...new Set(allTasksFlat(D).map(t=>t.branch))];
+  branches.forEach(b=>{
+    if(![...sel.options].find(o=>o.value===b)){
+      const o=document.createElement('option');
+      o.value=b; o.textContent=b; sel.appendChild(o);
+    }
+  });
+}
+
+function toggleFilter(btn){
+  const s=btn.dataset.s;
+  if(activeFilters.has(s)){activeFilters.delete(s);btn.classList.remove('on');}
+  else{activeFilters.add(s);btn.classList.add('on');}
+  renderKanban();
+}
+
+function setView(v){
+  kbView=v;
+  document.getElementById('vt-kanban').classList.toggle('on',v==='kanban');
+  document.getElementById('vt-list').classList.toggle('on',v==='list');
+  document.getElementById('kb-body').classList.toggle('list-mode',v==='list');
+  document.getElementById('kb-list').classList.toggle('show',v==='list');
+  renderKanban();
+}
+
+function statusIcon(s){return{urgent:'🚨',active:'🟡',done:'✅',todo:'🔵',inprogress:'🔧'}[s]||'🔵';}
+function pLabel(p){return{high:'Высокий',medium:'Средний',low:'Низкий'}[p]||'';}
+function pClass(p){return{high:'ph',medium:'pm',low:'pl'}[p]||'';}
+
+function renderKanban(){
+  const branchFilter=document.getElementById('kb-branch-filter').value;
+  const searchQ=(document.getElementById('kb-search').value||'').toLowerCase();
+
+  let tasks=allTasksFlat(D);
+  if(branchFilter) tasks=tasks.filter(t=>t.branch===branchFilter);
+  if(searchQ) tasks=tasks.filter(t=>t.l.toLowerCase().includes(searchQ)||(t.d||'').toLowerCase().includes(searchQ));
+  tasks=tasks.filter(t=>activeFilters.has(t.s));
+
+  if(kbView==='kanban'){
+    ['urgent','active','todo','done'].forEach(s=>{
+      const col=document.getElementById('kl-'+s);
+      const cnt=document.getElementById('kc-'+s);
+      const filtered=tasks.filter(t=>t.s===s);
+      cnt.textContent=filtered.length;
+      col.innerHTML=filtered.length===0
+        ?'<div class="kb-empty">Нет задач</div>'
+        :filtered.map(t=>`
+          <div class="kcard" onclick="openTaskDetail(${JSON.stringify(t).replace(/"/g,'&quot;')})">
+            <div class="kcard-title">${t.l}</div>
+            <div class="kcard-meta">
+              <span class="kcard-branch" style="border-color:${t.branchColor}33;color:${t.branchColor}99">${t.branch}</span>
+              ${t.p?`<span class="pb ${pClass(t.p)}">${pLabel(t.p)}</span>`:''}
+            </div>
+            ${t.d?`<div class="kcard-desc">${t.d}</div>`:''}
+          </div>`).join('');
+    });
+  } else {
+    const list=document.getElementById('kb-list');
+    const order=['urgent','active','todo','done'];
+    const sorted=tasks.slice().sort((a,b)=>order.indexOf(a.s)-order.indexOf(b.s));
+    list.innerHTML=sorted.length===0
+      ?'<div class="kb-empty" style="margin-top:60px">Нет задач</div>'
+      :sorted.map(t=>`
+        <div class="lcard" onclick="openTaskDetail(${JSON.stringify(t).replace(/"/g,'&quot;')})">
+          <div class="lcard-status">${statusIcon(t.s)}</div>
+          <div class="lcard-body">
+            <div class="lcard-title">${t.l}</div>
+            <div class="lcard-meta">
+              <span class="lcard-branch" style="color:${t.branchColor}aa">${t.branch}</span>
+              ${t.p?`<span class="pb ${pClass(t.p)}">${pLabel(t.p)}</span>`:''}
+              ${t.d?`<span style="font-size:10px;color:#2a4a6a">· ${t.d.slice(0,60)}${t.d.length>60?'…':''}</span>`:''}
+            </div>
+          </div>
+        </div>`).join('');
+  }
+}
+
+function openTaskDetail(task){
+  // Для будущего: открыть чат с AI по этой задаче
+  // Пока показываем drawer с деталями задачи
+  const node=findNodeById(D,task.nodeId);
+  if(node){closeKanban();selectNodeById(task.nodeId);}
+}
+
+function findNodeById(node,id){
+  if(node.id===id)return node;
+  for(const c of node.children||[]){const r=findNodeById(c,id);if(r)return r;}
+  return null;
+}
+
+function selectNodeById(id){
+  // найти SVG элемент и кликнуть на него
+  setTimeout(()=>{
+    const g=document.querySelector(`[data-id="${id}"]`);
+    if(g) g.dispatchEvent(new Event('click',{bubbles:true}));
+  },200);
+}
+
+function openKanban(){
+  populateBranchFilter();
+  renderKanban();
+  document.getElementById('kb-overlay').classList.add('open');
+  document.getElementById('btn-kanban').classList.add('active');
+}
+
+function closeKanban(){
+  document.getElementById('kb-overlay').classList.remove('open');
+  document.getElementById('btn-kanban').classList.remove('active');
+}
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape') closeKanban();
+});
+
+// ─────────────────────────────────────────
+// TERMINAL
+// ─────────────────────────────────────────
+const WS_URL  = 'wss://chebvpn.ru/ws/terminal';
+const TOKEN_KEY = 'chebvpn_term_token';
+
+let term = null;
+let fitAddon = null;
+let ws = null;
+let termReady = false;
+
+function initXterm() {
+  if (term) return;
+  term = new Terminal({
+    theme: {
+      background: '#020609',
+      foreground: '#c0d8ec',
+      cursor:     '#00D4FF',
+      cursorAccent: '#020609',
+      black:   '#1a2a3a', red:    '#ff5555', green:  '#55cc88',
+      yellow:  '#ffd166', blue:   '#4a90d9', magenta:'#b07aff',
+      cyan:    '#00D4FF', white:  '#c0d8ec',
+      brightBlack:  '#2a4a6a', brightRed:    '#ff7777',
+      brightGreen:  '#77ee99', brightYellow: '#ffe088',
+      brightBlue:   '#6aabff', brightMagenta:'#cc99ff',
+      brightCyan:   '#33e0ff', brightWhite:  '#e0f0ff',
+    },
+    fontFamily: "'JetBrains Mono', 'Fira Code', 'Courier New', monospace",
+    fontSize: 13,
+    lineHeight: 1.4,
+    cursorBlink: true,
+    allowProposedApi: true,
+  });
+  fitAddon = new FitAddon.FitAddon();
+  term.loadAddon(fitAddon);
+  term.open(document.getElementById('term-inner'));
+  fitAddon.fit();
+
+  term.onData(data => {
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ type: 'input', data }));
+    }
+  });
+
+  window.addEventListener('resize', () => {
+    if (termReady) {
+      fitAddon.fit();
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: 'resize', cols: term.cols, rows: term.rows }));
+      }
+    }
+  });
+}
+
+function termConnect(taskText) {
+  const tokenInput = document.getElementById('term-token-input');
+  const errEl = document.getElementById('term-err');
+  const token = tokenInput ? tokenInput.value.trim() : (localStorage.getItem(TOKEN_KEY) || '');
+
+  if (!token) { if (errEl) errEl.textContent = 'Введи токен'; return; }
+
+  document.getElementById('term-connect-btn').textContent = 'Подключение...';
+  if (errEl) errEl.textContent = '';
+
+  ws = new WebSocket(WS_URL);
+
+  ws.onopen = () => {
+    ws.send(JSON.stringify({ token, task: taskText || '' }));
+  };
+
+  ws.onmessage = e => {
+    try {
+      const msg = JSON.parse(e.data);
+      if (msg.status === 'ok') {
+        // Авторизован
+        localStorage.setItem(TOKEN_KEY, token);
+        document.getElementById('term-auth-screen').classList.add('hidden');
+        termReady = true;
+        if (fitAddon) fitAddon.fit();
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({ type: 'resize', cols: term.cols, rows: term.rows }));
+        }
+        return;
+      }
+      if (msg.error) {
+        if (errEl) errEl.textContent = msg.error;
+        document.getElementById('term-connect-btn').textContent = 'Подключиться';
+        ws.close();
+        return;
+      }
+      if (msg.type === 'output' && term) {
+        term.write(msg.data);
+      }
+    } catch {
+      if (term) term.write(e.data);
+    }
+  };
+
+  ws.onerror = () => {
+    if (errEl) errEl.textContent = 'Ошибка подключения';
+    document.getElementById('term-connect-btn').textContent = 'Подключиться';
+  };
+
+  ws.onclose = () => {
+    termReady = false;
+    if (term) term.write('\r\n\x1b[31m[Соединение закрыто]\x1b[0m\r\n');
+  };
+}
+
+function openTerminal(taskText) {
+  const panel = document.getElementById('term-panel');
+  panel.classList.add('open');
+  document.getElementById('btn-term').classList.add('active');
+
+  // Метка задачи
+  const lbl = document.getElementById('term-task-label');
+  lbl.innerHTML = taskText ? `Задача: <b>${taskText.slice(0, 80)}</b>` : '';
+
+  initXterm();
+
+  // Уже подключены — просто вставляем контекст задачи
+  if (termReady && ws && ws.readyState === WebSocket.OPEN) {
+    if (taskText) {
+      const cmd = `\n# ── Задача: ${taskText} ──\n`;
+      ws.send(JSON.stringify({ type: 'input', data: cmd }));
+    }
+    term.focus();
+    return;
+  }
+
+  // Есть сохранённый токен — подключаемся автоматически
+  const saved = localStorage.getItem(TOKEN_KEY);
+  if (saved) {
+    const inp = document.getElementById('term-token-input');
+    if (inp) inp.value = saved;
+    termConnect(taskText);
+  }
+  // иначе показывается экран ввода токена (уже виден по умолчанию)
+}
+
+function toggleTerminal() {
+  const panel = document.getElementById('term-panel');
+  if (panel.classList.contains('open')) {
+    closeTerminal();
+  } else {
+    openTerminal('');
+  }
+}
+
+function closeTerminal() {
+  document.getElementById('term-panel').classList.remove('open');
+  document.getElementById('btn-term').classList.remove('active');
+}
+
+function termSendClaude() {
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify({ type: 'input', data: 'claude\n' }));
+    term.focus();
+  }
+}
+
+function termClear() {
+  if (term) term.clear();
+}
+
+// Переопределяем openTaskDetail чтобы открывать терминал
+function openTaskDetail(task) {
+  closeKanban();
+  openTerminal(task.l + (task.d ? ' — ' + task.d : ''));
+}
+
+// ─────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────
+renderMap();
+window.addEventListener('resize',renderMap);
+</script>
+</body>
+</html>
