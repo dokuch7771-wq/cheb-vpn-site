@@ -681,6 +681,19 @@ const D = {
   ]
 },
 
+{
+  id:'workspace', label:'Workspace /\nИнструменты', icon:'🗂', color:'#00C9A7', angle:160, dist:210,
+  description:'map.html — engineering workspace для управления проектом. Канбан, майнд карта, терминал, AI-контекст.',
+  tasks:[
+    {s:'active',p:'high',l:'Linear UI рефактор map.html',d:'Заменить 200+ захардкоженных hex-цветов на CSS-переменные. Переработать визуал под стиль Linear: нейтральный тёмный фон, меньше neon/glow, удобно для 1-3ч работы. Полный рефактор стилей.'},
+    {s:'todo',p:'medium',l:'Live-метрики сервера в map.html',d:'CPU, RAM, трафик, активные VPN-подключения — виджет в workspace. WebSocket endpoint на бэкенде → psutil.'},
+    {s:'todo',p:'medium',l:'Алерты в workspace',d:'При открытии карты проверять: баланс sms.ru < 50₽, истекающие подписки, упавшие сервисы. API endpoint + бейдж в header.'},
+    {s:'done',l:'Сниппеты терминала',d:'6 кнопок быстрых команд: статус, лог бота, рестарт, бэкап, диск, XUI'},
+    {s:'done',l:'Drag & Drop канбан',d:'SortableJS, перетаскивание между колонками, сохранение в localStorage'},
+    {s:'done',l:'Fullscreen терминал + AI-контекст задачи',d:'Из воркспейса задачи → терминал на весь экран → автозапуск claude с контекстом'},
+  ]
+},
+
   ] // end root children
 };
 
@@ -1102,7 +1115,8 @@ function renderKanban(){
     ['urgent','active','todo','done'].forEach(s=>{
       const col=document.getElementById('kl-'+s);
       const cnt=document.getElementById('kc-'+s);
-      const filtered=tasks.filter(t=>t.s===s);
+      const PORD={high:0,medium:1,low:2};
+      const filtered=tasks.filter(t=>t.s===s).sort((a,b)=>(PORD[a.p]??3)-(PORD[b.p]??3));
       cnt.textContent=filtered.length;
       col.innerHTML=filtered.length===0
         ?'<div class="kb-empty">Нет задач</div>'
