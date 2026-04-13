@@ -3,7 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CHEB VPN — Mind Map</title>
+<title>CHEB VPN — Engineering Workspace v2</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+<meta http-equiv="Pragma" content="no-cache"/>
+<meta http-equiv="Expires" content="0"/>
 <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;700&family=Onest:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.min.css"/>
 <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.min.js"></script>
@@ -217,6 +220,7 @@ body{background:var(--bg);color:var(--text);font-family:'Onest',sans-serif;overf
   <div class="subtitle">Engineering Workspace</div>
   <button class="hbtn" id="btn-kanban" onclick="openKanban()">📋 Задачи</button>
   <button class="hbtn" id="btn-term" onclick="toggleTerminal()">⚡ Терминал</button>
+  <button class="hbtn" id="btn-hitl" onclick="openHitl()" style="display:none">🤖 Агент <span id="hitl-badge" style="background:var(--red);color:#fff;border-radius:8px;padding:0 5px;font-size:9px;margin-left:2px;"></span></button>
   <button class="hbtn" id="theme-toggle" onclick="toggleTheme()" title="Тема">🌙</button>
   <!-- Health widget -->
   <div id="health-widget" style="display:flex;align-items:center;gap:10px;font-size:10px;color:var(--text3);border-left:1px solid var(--border);padding-left:12px;margin-left:4px;">
@@ -668,7 +672,7 @@ const D = {
       tasks:[
         {s:'todo',p:'medium',l:'Дашборд выручки из БД',d:'Читает vpn_bot.db + chebvpn.db → строит отчёт'},
         {s:'todo',p:'medium',l:'Анализ конкурентов VPN-рынка',d:'Цены, фичи, маркетинг топ-5 конкурентов'},
-        {s:'todo',p:'high',l:'Агент-хранитель проекта',d:'Cron-скрипт: раз в сутки анализирует логи, статус сервисов, задачи из /api/workspace/tasks → пишет в Telegram: статус серверов, новые пользователи, активные задачи дня.'},
+        {s:'done',l:'Агент-хранитель проекта',d:'orchestrator.py: cron 9:00 daily report + 10:00 propose. systemd chebvpn-hitl.service (listener). Telegram Approve/Reject. proposals.db.'},
       ]
     },
   ]
@@ -743,9 +747,10 @@ const D = {
   id:'workspace', label:'Workspace /\nИнструменты', icon:'🗂', color:'#00C9A7', angle:160, dist:210,
   description:'map.html — engineering workspace для управления проектом. Канбан, майнд карта, терминал, AI-контекст.',
   tasks:[
-    {s:'active',p:'high',l:'Linear UI рефактор map.html',d:'Заменить 200+ захардкоженных hex-цветов на CSS-переменные. Переработать визуал под стиль Linear: нейтральный тёмный фон #0f0f13, Slate/Zinc палитра, меньше neon/glow. Удобно для 1-3ч работы.'},
-    {s:'done',l:'SQLite API: серверное хранение задач',d:'GET/POST/PATCH /api/workspace/tasks + /api/workspace/health. Авторизация по токену. База /root/workspace_tasks.db.'},
-    {s:'done',l:'Live-метрики сервера в header',d:'CPU%, RAM%, Диск — виджет в header, polling каждые 15с. Зелёный/красный индикатор при превышении порогов.'},
+    {s:'active',p:'high',l:'Linear UI рефактор map.html',d:'CSS-переменные внедрены (--bg, --accent, --surface...). Нейтральная Slate-палитра. Требует проверки в браузере без кэша — Ctrl+Shift+R.'},
+    {s:'done',l:'SQLite API: серверное хранение задач',d:'GET/POST/PATCH /api/workspace/tasks + /api/workspace/health + /api/workspace/proposals. База /root/workspace_tasks.db + proposals.db.'},
+    {s:'done',l:'Live-метрики сервера в header',d:'CPU%, RAM%, Диск — виджет в header. Polling каждые 15с. Баг с ключом токена исправлен (chebvpn_term_token).'},
+    {s:'done',l:'HITL оркестратор (Агент-хранитель)',d:'orchestrator.py — daemon в systemd. Cron 9:00 daily report, 10:00 propose. Telegram Approve/Reject кнопки. proposals API. HITL overlay в map.html.'},
     {s:'todo',p:'medium',l:'История AI-решений в задаче',d:'Вкладка в воркспейсе задачи: лог принятых решений с датой. "13 апр — Claude предложил использовать SQLite вместо JSON". Хранить в SQLite.'},
     {s:'todo',p:'medium',l:'Связанные файлы в задаче',d:'Если в описании задачи упомянут файл (main.py, phone_auth.py) — делать его кликабельным. Клик → терминал открывает nano/cat этого файла.'},
     {s:'todo',p:'medium',l:'Алерты при открытии workspace',d:'При загрузке проверять: баланс sms.ru < 50₽, истекающие подписки, упавшие сервисы. Показывать бейдж-счётчик в header.'},
@@ -1728,7 +1733,8 @@ function toggleTheme() {
 // ─────────────────────────────────────────
 // HEALTH WIDGET
 // ─────────────────────────────────────────
-const WS_TOKEN = localStorage.getItem('terminal_token') || '';
+const TOKEN_KEY_REF = 'chebvpn_term_token';
+const WS_TOKEN = localStorage.getItem(TOKEN_KEY_REF) || '';
 const WS_API   = '/api/workspace';
 
 async function fetchHealth() {
@@ -1840,6 +1846,112 @@ window.addEventListener('DOMContentLoaded',()=>{
     </div>
   </div>
 </div>
+
+<!-- ── HITL OVERLAY ──────────────────────────────────────────── -->
+<style>
+#hitl-overlay{position:fixed;inset:0;z-index:3000;background:var(--bg);display:none;flex-direction:column;font-family:'Onest',sans-serif;}
+#hitl-overlay.open{display:flex;}
+#hitl-topbar{height:48px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:12px;flex-shrink:0;}
+#hitl-title{font-family:'Unbounded',sans-serif;font-size:14px;font-weight:600;color:var(--text);}
+#hitl-close{margin-left:auto;background:none;border:1px solid var(--border);color:var(--text2);width:28px;height:28px;border-radius:6px;cursor:pointer;font-size:13px;}
+#hitl-body{flex:1;overflow-y:auto;padding:32px 48px;max-width:800px;}
+.hitl-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:16px;}
+.hitl-card-label{font-size:13px;font-weight:600;color:var(--text);margin-bottom:6px;}
+.hitl-card-branch{font-size:10px;color:var(--text3);margin-bottom:10px;}
+.hitl-card-proposal{font-size:13px;color:var(--text2);line-height:1.6;white-space:pre-wrap;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:12px;margin-bottom:14px;}
+.hitl-actions{display:flex;gap:10px;}
+.hitl-approve{padding:8px 20px;background:var(--green);border:none;color:#fff;border-radius:7px;cursor:pointer;font-family:'Onest',sans-serif;font-size:12px;font-weight:500;}
+.hitl-reject{padding:8px 20px;background:none;border:1px solid var(--border2);color:var(--text2);border-radius:7px;cursor:pointer;font-family:'Onest',sans-serif;font-size:12px;}
+.hitl-empty{color:var(--text3);font-size:13px;text-align:center;padding:60px 0;}
+.hitl-status{font-size:11px;padding:3px 8px;border-radius:4px;font-weight:500;}
+.hitl-status.approved{background:var(--green-dim);color:var(--green);}
+.hitl-status.rejected{background:var(--red-dim);color:var(--red);}
+.hitl-status.pending{background:var(--yellow-dim);color:var(--yellow);}
+</style>
+<div id="hitl-overlay">
+  <div id="hitl-topbar">
+    <div id="hitl-title">🤖 Предложения агента (HITL)</div>
+    <button id="hitl-close" onclick="closeHitl()">✕</button>
+  </div>
+  <div id="hitl-body">
+    <div id="hitl-list"><div class="hitl-empty">Загрузка...</div></div>
+  </div>
+</div>
+
+<script>
+// ── HITL UI ──────────────────────────────────────────────────────
+const PROPOSALS_API = '/api/workspace/proposals';
+
+function openHitl(){
+  document.getElementById('hitl-overlay').classList.add('open');
+  document.body.style.overflow='hidden';
+  loadProposals();
+}
+function closeHitl(){
+  document.getElementById('hitl-overlay').classList.remove('open');
+  document.body.style.overflow='';
+}
+
+async function loadProposals(){
+  const list = document.getElementById('hitl-list');
+  if(!WS_TOKEN){ list.innerHTML='<div class="hitl-empty">Нужна авторизация в терминале</div>'; return; }
+  try {
+    const r = await fetch('/api/workspace/proposals', {headers:{'X-Workspace-Token':WS_TOKEN}});
+    const data = await r.json();
+    if(!data.length){ list.innerHTML='<div class="hitl-empty">Нет предложений от агента</div>'; return; }
+    list.innerHTML = data.map(p=>`
+      <div class="hitl-card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+          <div class="hitl-card-label">${p.task_label}</div>
+          <span class="hitl-status ${p.status}">${{pending:'⏳ Ожидает',approved:'✅ Одобрено',rejected:'❌ Отклонено',done:'🎉 Готово'}[p.status]||p.status}</span>
+        </div>
+        <div class="hitl-card-branch">Задача #${p.id} · ${p.created_at?.slice(0,10)||''}</div>
+        <div class="hitl-card-proposal">${p.proposal}</div>
+        ${p.status==='pending'?`
+        <div class="hitl-actions">
+          <button class="hitl-approve" onclick="hitlApprove(${p.id},this)">✅ Approve</button>
+          <button class="hitl-reject" onclick="hitlReject(${p.id},this)">❌ Reject</button>
+        </div>`:''}
+      </div>
+    `).join('');
+  } catch(e){ list.innerHTML='<div class="hitl-empty">Ошибка загрузки</div>'; }
+}
+
+async function hitlApprove(id, btn){
+  btn.disabled=true; btn.textContent='...';
+  const r = await fetch(`/api/workspace/proposals/${id}/approve`,
+    {method:'POST', headers:{'X-Workspace-Token':WS_TOKEN}});
+  if(r.ok){ await loadProposals(); updateHitlBadge(); }
+}
+async function hitlReject(id, btn){
+  btn.disabled=true; btn.textContent='...';
+  const r = await fetch(`/api/workspace/proposals/${id}/reject`,
+    {method:'POST', headers:{'X-Workspace-Token':WS_TOKEN}});
+  if(r.ok){ await loadProposals(); updateHitlBadge(); }
+}
+
+async function updateHitlBadge(){
+  if(!WS_TOKEN) return;
+  try {
+    const r = await fetch('/api/workspace/proposals', {headers:{'X-Workspace-Token':WS_TOKEN}});
+    const data = await r.json();
+    const pending = data.filter(p=>p.status==='pending').length;
+    const badge = document.getElementById('hitl-badge');
+    const btn = document.getElementById('btn-hitl');
+    if(pending > 0){
+      badge.textContent = pending;
+      btn.style.display = '';
+    } else {
+      btn.style.display = pending>0?'':'none';
+    }
+  } catch(e){}
+}
+
+// Проверяем badge каждые 30с
+setInterval(updateHitlBadge, 30000);
+// И когда токен появится
+document.addEventListener('ws-token-ready', updateHitlBadge);
+</script>
 
 </body>
 </html>
