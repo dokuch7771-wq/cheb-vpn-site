@@ -2110,7 +2110,7 @@ let _apiIdByLocalId = {};
 
 async function loadTasksFromAPI() {
   const tok = apiToken();
-  if (!tok) { loadTasksLocal(); return; }
+  if (!tok) { loadTasksLocal(); renderMap(); return; }
   try {
     const r = await fetch(`${WS_API}/tasks`, {headers:{'X-Workspace-Token': tok}});
     if (!r.ok) { loadTasksLocal(); return; }
@@ -2133,7 +2133,7 @@ async function loadTasksFromAPI() {
     applyAPI(D);
     renderMap();
     if (document.getElementById('kb-overlay').classList.contains('open')) renderKanban();
-  } catch(e) { loadTasksLocal(); }
+  } catch(e) { loadTasksLocal(); renderMap(); }
 }
 
 async function patchTaskAPI(task, fields) {
@@ -2175,7 +2175,7 @@ setInterval(fetchHealth, 15000);
 // ─────────────────────────────────────────
 // INIT
 // ─────────────────────────────────────────
-loadTasksFromAPI();
+loadTasksFromAPI().catch(()=>{ loadTasksLocal(); renderMap(); });
 window.addEventListener('resize',renderMap);
 // Backdrop click на modal — DOM уже готов
 window.addEventListener('DOMContentLoaded',()=>{
