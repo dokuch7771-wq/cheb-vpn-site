@@ -766,7 +766,7 @@ const D = {
 },
 
 {
-  id:'workspace', label:'Workspace /\nИнструменты', icon:'🗂', color:'#00C9A7', angle:160, dist:210,
+  id:'workspace', label:'Workspace /\nИнструменты', icon:'🗂', color:'#00C9A7', angle:178, dist:215,
   description:'map.html — engineering workspace для управления проектом. Канбан, майнд карта, терминал, AI-контекст.',
   tasks:[
     {s:'active',p:'high',l:'Linear UI рефактор map.html',d:'CSS-переменные внедрены (--bg, --accent, --surface...). Нейтральная Slate-палитра. Требует проверки в браузере без кэша — Ctrl+Shift+R.'},
@@ -803,10 +803,12 @@ function layout(node,px,py,angle,dist,level){
     let a;
     if(level===0){ a = c.angle; }
     else{
-      const spread = n===1?0:Math.min(70,28*n);
+      // level===1 — дети root-веток: ограничиваем чтобы не заходили в соседние ветки
+      // level>=2 — глубже: чуть шире т.к. меньше конкурентов
+      const spread = n===1?0:(level===1 ? Math.min(62,22*n) : Math.min(90,30*n));
       a = angle + (n===1?0:-spread/2+i*(spread/(n-1)));
     }
-    const d = level===0?c.dist:level===1?160:130;
+    const d = level===0?c.dist:level===1?175:140;
     layout(c, node.x, node.y, a, d, level+1);
   });
 }
@@ -1161,6 +1163,7 @@ svg.addEventListener('mousedown',e=>{
   if(e.target.closest('.node'))return;
   drag={sx:e.clientX-tr.x,sy:e.clientY-tr.y};
 });
+let _panRaf=null, _pendingMx=0, _pendingMy=0;
 window.addEventListener('mousemove',e=>{
   if(ndrag){
     const dx=(e.clientX-ndrag.sx)/tr.s;
@@ -1178,9 +1181,11 @@ window.addEventListener('mousemove',e=>{
     return;
   }
   if(!drag)return;
-  tr.x=e.clientX-drag.sx;
-  tr.y=e.clientY-drag.sy;
-  applyTr();
+  _pendingMx=e.clientX-drag.sx;
+  _pendingMy=e.clientY-drag.sy;
+  if(!_panRaf) _panRaf=requestAnimationFrame(()=>{
+    tr.x=_pendingMx; tr.y=_pendingMy; applyTr(); _panRaf=null;
+  });
 });
 window.addEventListener('mouseup',()=>{
   drag=null;
@@ -1212,7 +1217,8 @@ svg.addEventListener('wheel',e=>{
 },{passive:false});
 
 // touch
-let touches=null;
+let touches=null, _touchRaf=null;
+let _ptx=0,_pty=0,_pts=1,_ptpx=0;
 svg.addEventListener('touchstart',e=>{
   if(e.touches.length===1){
     const t=e.touches[0];
@@ -1231,16 +1237,21 @@ svg.addEventListener('touchmove',e=>{
   e.preventDefault();
   if(e.touches.length===1&&drag){
     const t=e.touches[0];
-    tr.x=t.clientX-drag.sx; tr.y=t.clientY-drag.sy; applyTr();
+    _ptx=t.clientX-drag.sx; _pty=t.clientY-drag.sy;
+    if(!_touchRaf) _touchRaf=requestAnimationFrame(()=>{
+      tr.x=_ptx; tr.y=_pty; applyTr(); _touchRaf=null;
+    });
   }else if(e.touches.length===2&&touches){
     const nd=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
     const factor=nd/touches.d;
-    tr.s=Math.max(.2,Math.min(4,touches.s*factor));
-    tr.x=touches.mx-(touches.mx-tr.x)*factor/touches.s*touches.s;
-    applyTr();
+    _pts=Math.max(.2,Math.min(4,touches.s*factor));
+    _ptpx=touches.mx-(touches.mx-tr.x)*factor/touches.s*touches.s;
+    if(!_touchRaf) _touchRaf=requestAnimationFrame(()=>{
+      tr.s=_pts; tr.x=_ptpx; applyTr(); _touchRaf=null;
+    });
   }
 },{passive:false});
-svg.addEventListener('touchend',()=>{drag=null;touches=null;});
+svg.addEventListener('touchend',()=>{drag=null;touches=null;_touchRaf=null;});
 
 // ─────────────────────────────────────────
 // KANBAN
@@ -2057,6 +2068,9 @@ function makeTermFullscreen(on) {
 function resetMapLayout(){
   localStorage.removeItem('chebvpn_node_pos');
   for(const k in nodePositions) delete nodePositions[k];
+  // сброс камеры в исходное положение
+  tr={x:0,y:0,s:1};
+  zTgt={x:0,y:0,s:1};
   renderMap();
 }
 
