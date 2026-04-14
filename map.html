@@ -1269,6 +1269,8 @@ function allTasksFlat(node,branch,out=[]){
     nodeId:node.id
   }));
   (node.children||[]).forEach(c=>allTasksFlat(c,branchName||c.label.replace('\n',' '),out));
+  // добавляем задачи созданные извне (агентом, API) которых нет в дереве
+  if(!branch) _apiExtraTasks.forEach(t=>out.push(t));
   return out;
 }
 
@@ -2107,6 +2109,8 @@ function apiToken() { return localStorage.getItem(TOKEN_KEY_REF) || ''; }
 let _apiTasksMap = {};
 // localTaskId → apiTaskId
 let _apiIdByLocalId = {};
+// задачи из API которых нет в дереве D (созданы агентом/извне)
+let _apiExtraTasks = [];
 
 async function loadTasksFromAPI() {
   const tok = apiToken();
@@ -2131,6 +2135,19 @@ async function loadTasksFromAPI() {
       (node.children||[]).forEach(applyAPI);
     }
     applyAPI(D);
+    // Собираем метки задач которые уже есть в дереве D
+    const knownLabels = new Set();
+    (function collectLabels(node){
+      (node.tasks||[]).forEach(t => knownLabels.add(t.l));
+      (node.children||[]).forEach(collectLabels);
+    })(D);
+    // Задачи из API которых нет в дереве — добавляем как "внешние"
+    _apiExtraTasks = tasks.filter(t => !knownLabels.has(t.label) && t.status !== 'done').map(t => ({
+      id: t.id, _apiId: t.id,
+      l: t.label, s: t.status, p: t.priority,
+      d: t.description||'',
+      branch: t.branch||'Без ветки', branchColor:'#5e6ad2', nodeId:'api'
+    }));
     renderMap();
     if (document.getElementById('kb-overlay').classList.contains('open')) renderKanban();
   } catch(e) { loadTasksLocal(); renderMap(); }
