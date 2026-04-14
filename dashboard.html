@@ -1453,10 +1453,12 @@ async function doRegister() {
   try {
     const ref_code = localStorage.getItem('cheb_ref') || null;
     const trial = sessionStorage.getItem('cheb_trial') === '1';
+    const promo_raw = localStorage.getItem('chebvpn_promo') || '';
+    const utm_source = promo_raw === 'trial-b' ? 'flyer_qr' : (promo_raw || null);
     const res = await fetch(API + '/api/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password: pass, ref_code, trial }),
+      body: JSON.stringify({ email, password: pass, ref_code, trial, utm_source }),
     });
     const data = await res.json();
     if (!res.ok) {

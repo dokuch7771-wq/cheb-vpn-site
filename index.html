@@ -1125,11 +1125,16 @@
 
     localStorage.setItem('chebvpn_promo', promo);
 
-    fetch('/api/promo/visit', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ slug: promo })
-    }).catch(() => {});
+    try {
+      const blob = new Blob([JSON.stringify({ slug: promo })], { type: 'application/json' });
+      navigator.sendBeacon('/api/promo/visit', blob);
+    } catch(e) {
+      fetch('/api/promo/visit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slug: promo })
+      }).catch(() => {});
+    }
 
     if (promo === 'sale') {
       applySalePrices();
