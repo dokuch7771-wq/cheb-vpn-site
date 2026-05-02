@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>7 дней бесплатно — CHEB VPN</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2">
+<link rel="icon" type="image/png" href="/favicon.png?v=2">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;700&family=Onest:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080C10;
+    --bg2: #0D1318;
+    --bg3: #131B22;
+    --surface: #1A2430;
+    --border: rgba(255,255,255,0.06);
+    --border2: rgba(255,255,255,0.12);
+    --accent: #00D4FF;
+    --accent2: #0099CC;
+    --accent-dim: rgba(0,212,255,0.08);
+    --accent-glow: rgba(0,212,255,0.2);
+    --text: #F0F4F8;
+    --text2: #8A9BAD;
+    --text3: #4A5A6A;
+    --green: #00E584;
+    --green-dim: rgba(0,229,132,0.08);
+    --font-h: 'Unbounded', sans-serif;
+    --font-b: 'Onest', sans-serif;
+    --r: 14px;
+    --r-lg: 20px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-b);
+    font-size: 16px;
+    line-height: 1.7;
+    overflow-x: hidden;
+    min-height: 100vh;
+  }
+
+  /* noise texture */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 0;
+  }
+
+  /* glow orbs */
+  .orb { position: fixed; border-radius: 50%; filter: blur(120px); pointer-events: none; z-index: 0; }
+  .orb-1 { width: 500px; height: 500px; background: rgba(0,212,255,0.07); top: -150px; left: 50%; transform: translateX(-50%); }
+  .orb-2 { width: 350px; height: 350px; background: rgba(0,229,132,0.05); bottom: 0; right: -80px; }
+
+  /* grid bg */
+  .page-wrap {
+    position: relative; z-index: 1;
+    min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 48px 20px 60px;
+  }
+
+  /* logo */
+  .logo {
+    font-family: var(--font-h);
+    font-size: 44px;
+    font-weight: 700;
+    color: var(--text2);
+    text-decoration: none;
+    letter-spacing: -0.03em;
+    margin-bottom: 24px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .logo span { color: var(--accent); }
+
+  /* hero */
+  .hero { text-align: center; max-width: 480px; width: 100%; }
+
+  .badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 6px 16px;
+    background: var(--green-dim);
+    border: 1px solid rgba(0,229,132,0.25);
+    border-radius: 100px;
+    font-size: 13px;
+    color: var(--green);
+    margin-bottom: 28px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+  }
+  .badge-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.8); }
+  }
+
+  h1 {
+    font-family: var(--font-h);
+    font-size: clamp(32px, 8vw, 52px);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin-bottom: 16px;
+  }
+  h1 .accent { color: var(--accent); }
+  h1 .green { color: var(--green); }
+
+  .hero-sub {
+    font-size: clamp(15px, 4vw, 18px);
+    color: rgba(240,244,248,0.75);
+    margin: 0 auto 32px;
+    line-height: 1.6;
+    font-weight: 400;
+  }
+
+  /* CTA button */
+  .cta-btn {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    width: 100%; max-width: 320px; margin: 0 auto;
+    padding: 16px 25px;
+    background: var(--accent);
+    color: #080C10;
+    font-family: var(--font-b);
+    font-size: 15px;
+    font-weight: 700;
+    text-transform: uppercase;
+    border-radius: 18px;
+    text-decoration: none;
+    transition: all 0.2s;
+    border: none; cursor: pointer;
+    letter-spacing: 0.06em;
+    box-shadow: 0 0 40px rgba(0,212,255,0.2);
+  }
+  .cta-btn:hover { background: #33DDFF; transform: translateY(-2px); box-shadow: 0 12px 40px rgba(0,212,255,0.35); }
+  .cta-btn:active { transform: translateY(0); }
+
+  .cta-hint {
+    font-size: 14px;
+    color: var(--text2);
+    margin-top: 12px;
+    text-align: center;
+  }
+
+  /* divider */
+  .divider {
+    width: 100%; max-width: 480px;
+    height: 1px;
+    background: var(--border);
+    margin: 40px 0;
+  }
+
+  /* benefits */
+  .benefits { width: 100%; max-width: 480px; display: flex; flex-direction: column; gap: 14px; }
+
+  .benefit {
+    display: flex; align-items: flex-start; gap: 16px;
+    padding: 18px 20px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    transition: border-color 0.2s;
+  }
+  .benefit:hover { border-color: var(--border2); }
+
+  .benefit-icon {
+    width: 40px; height: 40px; flex-shrink: 0;
+    background: var(--accent-dim);
+    border: 1px solid rgba(0,212,255,0.15);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+  }
+
+  .benefit-text h3 {
+    font-family: var(--font-h);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.3;
+    margin-bottom: 4px;
+    letter-spacing: -0.01em;
+  }
+
+  .benefit-text p {
+    font-size: 14px;
+    color: var(--text2);
+    line-height: 1.5;
+    font-weight: 300;
+  }
+
+  /* trust row */
+  .trust {
+    width: 100%; max-width: 480px;
+    margin-top: 40px;
+    display: flex; align-items: center; justify-content: center;
+    gap: 24px; flex-wrap: wrap;
+  }
+
+  .trust-item {
+    display: flex; align-items: center; gap: 7px;
+    font-size: 13px; color: var(--text3);
+  }
+  .trust-item span { font-size: 16px; }
+
+  /* bottom CTA */
+  .bottom-cta { width: 100%; max-width: 480px; margin-top: 40px; }
+
+  /* footer */
+  .foot {
+    margin-top: 40px;
+    font-size: 12px; color: var(--text3);
+    text-align: center;
+    line-height: 1.8;
+  }
+  .foot a { color: var(--text3); text-decoration: underline; text-underline-offset: 3px; }
+
+  /* mobile fine-tune */
+  @media (max-width: 400px) {
+    .page-wrap { padding: 36px 16px 48px; }
+    h1 { font-size: 30px; }
+  }
+</style>
+</head>
+<body>
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+
+<div class="page-wrap">
+
+  <a class="logo" href="/">CHEB <span>VPN</span></a>
+
+  <section class="hero">
+    <div class="badge">
+      <div class="badge-dot"></div>
+      Специальное предложение
+    </div>
+
+    <h1>
+      <span class="green">7 дней</span><br>
+      <span class="accent">бесплатно</span>
+    </h1>
+
+    <p class="hero-sub">
+      Быстрый VPN для свободного доступа в интернет.<br>
+      Работает в России — стабильно и без сбоев.
+    </p>
+
+    <a class="cta-btn" href="/dashboard?trial=1">
+      Попробовать бесплатно
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    </a>
+    <p class="cta-hint">Регистрация за 30 секунд</p>
+  </section>
+
+  <div class="divider"></div>
+
+  <div class="benefits">
+    <div class="benefit">
+      <div class="benefit-icon">⚡</div>
+      <div class="benefit-text">
+        <h3>Скорость без потерь</h3>
+        <p>VLESS Reality — самый быстрый протокол. Видео 4K, звонки, игры без задержек.</p>
+      </div>
+    </div>
+
+    <div class="benefit">
+      <div class="benefit-icon">🔒</div>
+      <div class="benefit-text">
+        <h3>Не блокируется</h3>
+        <p>Маскируется под обычный HTTPS-трафик. Работает там, где другие VPN не могут.</p>
+      </div>
+    </div>
+
+    <div class="benefit">
+      <div class="benefit-icon">📱</div>
+      <div class="benefit-text">
+        <h3>На всех устройствах</h3>
+        <p>iPhone, Android, Windows, Mac. Одна подписка — до 3 устройств одновременно.</p>
+      </div>
+    </div>
+
+    <div class="benefit">
+      <div class="benefit-icon">💬</div>
+      <div class="benefit-text">
+        <h3>Поддержка</h3>
+        <p>Отвечаем быстро и удобным для вас способом: Прямо на сайте или в чате Telegram.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="trust">
+    <div class="trust-item">
+      <span>✅</span>
+      Работает с 2023 года
+    </div>
+    <div class="trust-item">
+      <span>👥</span>
+      <span id="active-users-count">150+</span> активных пользователей
+    </div>
+    <div class="trust-item">
+      <span>🇳🇱</span>
+      Сервер в Нидерландах
+    </div>
+  </div>
+
+  <div class="bottom-cta">
+    <a class="cta-btn" href="/dashboard?trial=1">
+      Начать 7 дней бесплатно
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    </a>
+  </div>
+
+  <p class="foot">
+    После пробного периода — от 159₽/месяц<br>
+    <a href="/">chebvpn.ru</a> · <a href="https://t.me/cheb_vpn21_bot">@cheb_vpn21_bot</a>
+  </p>
+
+</div>
+<script>
+  // Promo tracking — same as index.html logic for trial-b
+  (function() {
+    var promo = 'trial-b';
+    localStorage.setItem('chebvpn_promo', promo);
+    try {
+      var blob = new Blob([JSON.stringify({ slug: promo })], { type: 'application/json' });
+      navigator.sendBeacon('/api/promo/visit', blob);
+    } catch(e) {
+      fetch('/api/promo/visit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slug: promo })
+      }).catch(function(){});
+    }
+  })();
+</script>
+<script src="/chat-widget.js?v=2" defer></script>
+<style>
+  #chvpn-fab { background: #00D4FF !important; box-shadow: 0 4px 20px rgba(0,212,255,.45) !important; }
+  #chvpn-fab:hover { box-shadow: 0 6px 28px rgba(0,212,255,.6) !important; }
+  .chvpn-header-status { color: #00D4FF !important; }
+</style>
+<script>
+  (async function() {
+    try {
+      const r = await fetch('/api/stats/users');
+      if (r.ok) {
+        const d = await r.json();
+        const el = document.getElementById('active-users-count');
+        if (el) el.textContent = d.active_users;
+      }
+    } catch(e) {}
+  })();
+</script>
+</body>
+</html>

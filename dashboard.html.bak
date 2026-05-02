@@ -137,21 +137,8 @@
     font-size: 15px;
     outline: none;
     transition: border-color 0.2s;
-    box-sizing: border-box;
   }
-  .field input::placeholder { color: #A0A0A0; }
   .field input:focus { border-color: var(--accent); }
-  .field input.valid { border-color: #22c55e; }
-  .field input.invalid { border-color: var(--red); }
-  .field-wrap { position: relative; }
-  .field-wrap input { padding-right: 44px; }
-  .field-icon {
-    position: absolute; right: 13px; top: 50%; transform: translateY(-50%);
-    cursor: pointer; color: #A0A0A0; font-size: 18px; user-select: none;
-    transition: color 0.2s; line-height: 1;
-  }
-  .field-icon:hover { color: var(--text); }
-  .field-hint { font-size: 12px; margin-top: 5px; min-height: 16px; }
 
   .btn-primary {
     width: 100%;
@@ -809,13 +796,6 @@
   }
   .tg-steps strong { color: var(--text); }
   .tg-waiting { font-size: 13px; color: var(--text2); margin-top: 16px; }
-  .tg-open-btn {
-    display: inline-flex; align-items: center; gap: 10px;
-    background: #2AABEE; color: #fff; font-weight: 700; font-size: 16px;
-    padding: 14px 32px; border-radius: 12px; text-decoration: none;
-    transition: opacity .2s; margin-top: 4px;
-  }
-  .tg-open-btn:hover { opacity: .85; }
 
   /* ── Linked accounts ── */
   .linked-row {
@@ -861,54 +841,14 @@
 
       <!-- ── ЭКРАН 1: выбор способа (показывается по умолчанию) ── -->
       <div id="auth-methods-screen">
+        <h2 class="auth-main-title">Войти в CHEB VPN</h2>
 
-        <!-- Trial banner (скрыт по умолчанию, показывается JS) -->
-        <div id="auth-trial-banner" style="display:none;background:linear-gradient(135deg,rgba(0,229,132,0.12),rgba(0,229,132,0.06));border:1px solid rgba(0,229,132,0.3);border-radius:12px;padding:14px 16px;margin-bottom:20px;text-align:center;">
-          <div style="font-size:22px;margin-bottom:4px;">🎁</div>
-          <div style="font-size:15px;font-weight:700;color:var(--green);margin-bottom:2px;">7 дней бесплатно новым пользователям</div>
-          <div style="font-size:13px;color:var(--text2);">Войдите любым способом — дни начислятся на аккаунт</div>
-        </div>
-
-        <h2 class="auth-main-title" id="auth-main-title">Войти в CHEB VPN</h2>
-
-        <!-- ВКонтакте -->
-        <a class="auth-method-card" id="btn-vk-oauth" href="/auth/vk" style="text-decoration:none;color:inherit;">
-          <div class="auth-method-icon" style="background:#0077ff;color:#fff;border-radius:8px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0;">ВК</div>
-          <div class="auth-method-info">
-            <div class="auth-method-name">ВКонтакте</div>
-            <div class="auth-method-desc">Войти через VK ID</div>
-          </div>
-          <div class="auth-method-arrow">›</div>
-        </a>
-
-        <!-- Telegram -->
-        <div class="auth-method-card" onclick="startTelegramLogin()">
-          <div class="auth-method-icon">✈️</div>
-          <div class="auth-method-info">
-            <div class="auth-method-name">Через Telegram</div>
-            <div class="auth-method-desc">Быстрый вход через бот</div>
-          </div>
-          <div class="auth-method-arrow">›</div>
-        </div>
-
-        <!-- Яндекс -->
-        <a class="auth-method-card" id="btn-yandex-oauth" href="/auth/yandex" style="text-decoration:none;color:inherit;">
-          <div class="auth-method-icon" style="background:#fc3f1d;color:#fff;border-radius:8px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;flex-shrink:0;">Я</div>
-          <div class="auth-method-info">
-            <div class="auth-method-name">Яндекс ID</div>
-            <div class="auth-method-desc">Войти через аккаунт Яндекса</div>
-          </div>
-          <div class="auth-method-arrow">›</div>
-        </a>
-
-        <div class="auth-divider">─── или ───</div>
-
-        <!-- Email -->
+        <!-- Email — главный способ -->
         <div class="auth-method-card" onclick="showAuthMethod('email-otp')">
           <div class="auth-method-icon">✉️</div>
           <div class="auth-method-info">
-            <div class="auth-method-name">Email</div>
-            <div class="auth-method-desc">Код на почту — без пароля</div>
+            <div class="auth-method-name">Email <span class="auth-method-badge">ГЛАВНЫЙ</span></div>
+            <div class="auth-method-desc">Код на почту — войти или зарегистрироваться</div>
           </div>
           <div class="auth-method-arrow">›</div>
         </div>
@@ -923,6 +863,21 @@
           <div class="auth-method-arrow">›</div>
         </div>
 
+        <!-- Telegram -->
+        <div class="auth-method-card" onclick="startTelegramLogin()">
+          <div class="auth-method-icon">✈️</div>
+          <div class="auth-method-info">
+            <div class="auth-method-name">Через Telegram</div>
+            <div class="auth-method-desc">Если уже есть подписка</div>
+          </div>
+          <div class="auth-method-arrow">›</div>
+        </div>
+
+        <div class="auth-divider">─── или ───</div>
+
+        <div style="text-align:center;">
+          <button class="btn-email-fallback" onclick="showAuthMethod('email')">Войти с email и паролем →</button>
+        </div>
       </div>
 
       <!-- ── ЭКРАН 2: телефон ── -->
@@ -946,9 +901,9 @@
 
         <div id="phone-step2" style="display:none">
           <div style="background:rgba(0,212,255,0.07);border:1px solid rgba(0,212,255,0.2);border-radius:10px;padding:12px 16px;margin-bottom:20px;text-align:center;">
-            <div style="font-size:22px;margin-bottom:6px;">💬</div>
-            <div style="font-size:14px;color:var(--text);font-weight:600;margin-bottom:4px;">SMS отправлено</div>
-            <div style="font-size:13px;color:var(--text2);">Введите 4-значный код из сообщения</div>
+            <div style="font-size:22px;margin-bottom:6px;">📞</div>
+            <div style="font-size:14px;color:var(--text);font-weight:600;margin-bottom:4px;">Вам поступит звонок</div>
+            <div style="font-size:13px;color:var(--text2);">Код — последние 4 цифры входящего номера</div>
           </div>
           <div class="code-input" id="code-boxes">
             <input type="tel" maxlength="1" inputmode="numeric" oninput="codeInput(this,0)" onkeydown="codeKey(event,0)">
@@ -958,13 +913,7 @@
           </div>
           <div class="resend-wrap">
             <span id="resend-timer"></span>
-            <button class="btn-resend" id="btn-resend" onclick="sendCode(true)" disabled>Отправить SMS ещё раз</button>
-          </div>
-          <div id="call-code-wrap" style="display:none;text-align:center;margin-top:8px;">
-            <button id="btn-call-code" onclick="requestCallCode()" style="background:none;border:1px solid rgba(0,212,255,0.3);border-radius:8px;color:var(--accent);font-family:var(--font-b);font-size:13px;padding:8px 16px;cursor:pointer;width:100%;">
-              📞 Не пришло SMS? Позвонить мне
-            </button>
-            <div id="call-code-msg" style="font-size:12px;color:var(--text2);margin-top:6px;display:none;"></div>
+            <button class="btn-resend" id="btn-resend" onclick="sendCode(true)" disabled>Отправить ещё раз</button>
           </div>
           <button class="btn-primary" id="btn-verify" onclick="verifyCode()">Войти</button>
           <button style="width:100%;background:none;border:none;color:var(--text2);font-family:var(--font-b);font-size:13px;cursor:pointer;margin-top:12px;" onclick="resetPhoneForm()">← Изменить номер</button>
@@ -1058,20 +1007,17 @@
           <div class="auth-error" id="register-error"></div>
           <div class="field">
             <label>Email</label>
-            <input type="email" id="reg-email" placeholder="you@example.com" autocomplete="email"
-              oninput="validateRegEmail(this)">
-            <div class="field-hint" id="reg-email-hint"></div>
+            <input type="email" id="reg-email" placeholder="you@example.com" autocomplete="email">
           </div>
           <div class="field">
             <label>Пароль</label>
-            <div class="field-wrap">
-              <input type="password" id="reg-pass" placeholder="минимум 8 символов" autocomplete="new-password"
-                oninput="validateRegPass(this)">
-              <span class="field-icon" id="reg-pass-eye" onclick="togglePassVis('reg-pass','reg-pass-eye')">👁</span>
-            </div>
-            <div class="field-hint" id="reg-pass-hint"></div>
+            <input type="password" id="reg-pass" placeholder="минимум 8 символов" autocomplete="new-password">
           </div>
-          <button class="btn-primary" id="btn-register" onclick="doRegister()">Получить доступ</button>
+          <div class="field">
+            <label>Повторите пароль</label>
+            <input type="password" id="reg-pass2" placeholder="повторите пароль" autocomplete="new-password">
+          </div>
+          <button class="btn-primary" id="btn-register" onclick="doRegister()">Создать аккаунт</button>
         </div>
       </div>
 
@@ -1361,30 +1307,6 @@ function navigate(page) {
 }
 
 function renderPage() {
-  // Handle OAuth callback: ?token=xxx&oauth=yandex
-  const urlParams = new URLSearchParams(window.location.search);
-  const oauthToken = urlParams.get('token');
-  if (oauthToken) {
-    localStorage.setItem('chebvpn_token', oauthToken);
-    const url = new URL(window.location.href);
-    url.searchParams.delete('token');
-    url.searchParams.delete('oauth');
-    url.searchParams.delete('trial_created');
-    window.history.replaceState({}, '', url.pathname + '#dashboard');
-    showPage('dashboard');
-    switchDashTab('key');
-    loadDashboard();
-    return;
-  }
-
-  // Handle trial flag from URL: /dashboard?trial=1
-  if (urlParams.get('trial') === '1') {
-    sessionStorage.setItem('cheb_trial', '1');
-    const url = new URL(window.location.href);
-    url.searchParams.delete('trial');
-    window.history.replaceState({}, '', url.pathname + '#login');
-  }
-
   // Parse hash and hash-embedded params: e.g. #register?trial=true
   const rawHash = window.location.hash.replace('#', '') || 'login';
   const [hash, hashQuery] = rawHash.split('?');
@@ -1392,19 +1314,26 @@ function renderPage() {
   const token = localStorage.getItem('chebvpn_token');
 
   if (!token && hash !== 'login' && hash !== 'register') {
+    // Save trial flag so it survives redirect to login
     if (hashParams.get('trial') === 'true') sessionStorage.setItem('cheb_trial', '1');
     showPage('login');
     showAuthMethods();
     return;
   }
 
-  if (hash === 'login' || hash === 'register') {
+  if (hash === 'login') {
     if (token) { navigate('dashboard'); return; }
-    // Подхватить trial из старых хэш-ссылок (#register?trial=true)
-    if (hashParams.get('trial') === 'true') sessionStorage.setItem('cheb_trial', '1');
     showPage('login');
     showAuthMethods();
-    return;
+  } else if (hash === 'register') {
+    if (token) { navigate('dashboard'); return; }
+    const isTrial = hashParams.get('trial') === 'true' || sessionStorage.getItem('cheb_trial') === '1';
+    showPage('login');
+    switchTab('register');
+    // Show trial banner
+    const banner = document.getElementById('trial-reg-banner');
+    if (banner) banner.style.display = isTrial ? 'block' : 'none';
+    if (isTrial) sessionStorage.setItem('cheb_trial', '1');
   } else if (hash === 'dashboard' || hash === '') {
     showPage('dashboard');
     switchDashTab('key');
@@ -1444,7 +1373,6 @@ function showPage(name) {
 
 window.addEventListener('hashchange', renderPage);
 window.addEventListener('load', renderPage);
-
 
 // ── API ───────────────────────────────────────────────────────────────────────
 async function apiFetch(path, opts = {}) {
@@ -1502,18 +1430,6 @@ function showAuthMethods() {
   _hideAllAuthScreens();
   document.getElementById('auth-methods-screen').style.display = 'block';
   resetPhoneForm();
-  // Баннер и заголовок — зависят от trial
-  const isTrial = sessionStorage.getItem('cheb_trial') === '1';
-  const banner = document.getElementById('auth-trial-banner');
-  const title = document.getElementById('auth-main-title');
-  if (banner) banner.style.display = isTrial ? 'block' : 'none';
-  if (title) title.style.display = isTrial ? 'none' : 'block';
-  // Подставить trial=1 в OAuth-ссылки
-  const trialSuffix = isTrial ? '?trial=1' : '';
-  const yBtn = document.getElementById('btn-yandex-oauth');
-  const vBtn = document.getElementById('btn-vk-oauth');
-  if (yBtn) yBtn.href = '/auth/yandex' + trialSuffix;
-  if (vBtn) vBtn.href = '/auth/vk' + trialSuffix;
 }
 
 function showAuthMethod(method) {
@@ -1525,8 +1441,8 @@ function showAuthMethod(method) {
     document.getElementById('auth-email-otp-screen').style.display = 'block';
     setTimeout(() => { const inp = document.getElementById('otp-email'); if(inp) inp.focus(); }, 50);
   } else if (method === 'email') {
-    document.getElementById('auth-email-otp-screen').style.display = 'block';
-    setTimeout(() => { const inp = document.getElementById('otp-email'); if(inp) inp.focus(); }, 50);
+    document.getElementById('auth-email-screen').style.display = 'block';
+    switchEmailTab('login');
   }
 }
 
@@ -1562,7 +1478,7 @@ function _startOTPResendTimer() {
 }
 
 async function sendEmailOTP(isResend) {
-  const email = document.getElementById('otp-email').value.trim().toLowerCase();
+  const email = document.getElementById('otp-email').value.trim();
   const errEl = document.getElementById('email-otp-error');
   errEl.style.display = 'none';
   if (!email || !email.includes('@')) {
@@ -1593,7 +1509,7 @@ async function sendEmailOTP(isResend) {
 }
 
 async function verifyEmailOTP() {
-  const email = document.getElementById('otp-email').value.trim().toLowerCase();
+  const email = document.getElementById('otp-email').value.trim();
   const code = document.getElementById('otp-code').value.trim();
   const errEl = document.getElementById('email-otp-error');
   errEl.style.display = 'none';
@@ -1614,13 +1530,6 @@ async function verifyEmailOTP() {
     if (!r.ok) throw new Error(d.detail || 'Неверный код');
     localStorage.setItem('chebvpn_token', d.access_token);
     if (_otpResendTimer) { clearInterval(_otpResendTimer); _otpResendTimer = null; }
-    if (sessionStorage.getItem('cheb_trial') === '1') {
-      sessionStorage.removeItem('cheb_trial');
-      try {
-        const tr = await apiFetch('/api/trial/activate', { method: 'POST' });
-        if (tr.ok) { navigate('dashboard'); setTimeout(showTrialSuccess, 400); return; }
-      } catch(e) {}
-    }
     await renderPage();
   } catch(e) {
     errEl.textContent = e.message;
@@ -1641,7 +1550,9 @@ function switchEmailTab(tab) {
 // Legacy alias used by renderPage() for register/trial flow
 function switchTab(tab) {
   if (tab === 'phone') { showAuthMethod('phone'); return; }
-  if (tab === 'login' || tab === 'register' || tab === 'forgot') { showAuthMethod('email-otp'); return; }
+  if (tab === 'login') { showAuthMethod('email'); switchEmailTab('login'); return; }
+  if (tab === 'register') { showAuthMethod('email'); switchEmailTab('register'); return; }
+  if (tab === 'forgot') { showAuthMethod('email'); switchEmailTab('forgot'); return; }
 }
 
 async function doLogin() {
@@ -1671,38 +1582,17 @@ async function doLogin() {
   }
 }
 
-function togglePassVis(inputId, eyeId) {
-  const inp = document.getElementById(inputId);
-  const eye = document.getElementById(eyeId);
-  if (inp.type === 'password') { inp.type = 'text'; eye.textContent = '🙈'; }
-  else { inp.type = 'password'; eye.textContent = '👁'; }
-}
-
-function validateRegEmail(inp) {
-  const hint = document.getElementById('reg-email-hint');
-  const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(inp.value.trim());
-  if (!inp.value) { inp.className = ''; hint.textContent = ''; return; }
-  if (ok) { inp.className = 'valid'; hint.style.color = '#22c55e'; hint.textContent = '✓ Корректный email'; }
-  else { inp.className = 'invalid'; hint.style.color = 'var(--red)'; hint.textContent = 'Проверьте формат email'; }
-}
-
-function validateRegPass(inp) {
-  const hint = document.getElementById('reg-pass-hint');
-  if (!inp.value) { inp.className = ''; hint.textContent = ''; return; }
-  if (inp.value.length >= 8) { inp.className = 'valid'; hint.style.color = '#22c55e'; hint.textContent = '✓ Надёжный пароль'; }
-  else { inp.className = 'invalid'; hint.style.color = 'var(--red)'; hint.textContent = `Ещё ${8 - inp.value.length} симв.`; }
-}
-
 async function doRegister() {
   const email = document.getElementById('reg-email').value.trim();
   const pass = document.getElementById('reg-pass').value;
+  const pass2 = document.getElementById('reg-pass2').value;
   const errEl = document.getElementById('register-error');
   const btn = document.getElementById('btn-register');
   errEl.style.display = 'none';
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { errEl.textContent = 'Введите корректный email'; errEl.style.display = 'block'; return; }
   if (pass.length < 8) { errEl.textContent = 'Пароль должен быть минимум 8 символов'; errEl.style.display = 'block'; return; }
+  if (pass !== pass2) { errEl.textContent = 'Пароли не совпадают'; errEl.style.display = 'block'; return; }
   btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span>Получаем доступ...';
+  btn.innerHTML = '<span class="spinner"></span>Создаём...';
   try {
     const ref_code = localStorage.getItem('cheb_ref') || null;
     const trial = sessionStorage.getItem('cheb_trial') === '1';
@@ -1717,11 +1607,12 @@ async function doRegister() {
     if (!res.ok) {
       if (data.detail === 'Email already registered') {
         // Switch to login form and pre-fill email
-        showAuthMethod('email-otp');
-        document.getElementById('otp-email').value = email;
-        const otpErr = document.getElementById('email-otp-error');
-        otpErr.textContent = 'Этот email уже есть. Войдите по коду на почту.';
-        otpErr.style.display = 'block';
+        showAuthMethod('email');
+        switchEmailTab('login');
+        document.getElementById('login-email').value = email;
+        const lErr = document.getElementById('login-error');
+        lErr.textContent = 'Этот email уже зарегистрирован. Введите пароль для входа.';
+        lErr.style.display = 'block';
         return;
       }
       throw new Error(data.detail || 'Ошибка регистрации');
@@ -1742,7 +1633,7 @@ async function doRegister() {
     errEl.style.display = 'block';
   } finally {
     btn.disabled = false;
-    btn.textContent = 'Получить доступ';
+    btn.textContent = 'Создать аккаунт';
   }
 }
 
@@ -2015,13 +1906,7 @@ let _loginInterval = null;
 async function startTelegramLogin() {
   let code;
   try {
-    const promo_raw = localStorage.getItem('chebvpn_promo') || '';
-    const utm_src = promo_raw === 'trial-b' ? 'flyer_qr' : (promo_raw || null);
-    const res = await fetch(API + '/api/auth/telegram/login-code', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ utm_source: utm_src }),
-    });
+    const res = await fetch(API + '/api/auth/telegram/login-code');
     const data = await res.json();
     if (!data.code) throw new Error('no code');
     code = data.code;
@@ -2030,8 +1915,7 @@ async function startTelegramLogin() {
     return;
   }
 
-  const deepLink = `https://t.me/cheb_vpn21_bot?start=login_${code}`;
-
+  // Show telegram login screen
   _hideAllAuthScreens();
   const screen = document.getElementById('auth-telegram-screen');
   screen.style.display = 'block';
@@ -2040,25 +1924,20 @@ async function startTelegramLogin() {
     <div class="tg-screen">
       <div class="tg-screen-icon">✈️</div>
       <h3>Войти через Telegram</h3>
-      <p style="color:var(--text2);margin:0 0 20px;">Нажмите кнопку — откроется Telegram.<br>Подтвердите вход одним нажатием.</p>
-      <a href="${deepLink}" target="_blank" class="tg-open-btn" onclick="_tgLinkClicked=true">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="white" style="flex-shrink:0"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.833.941z"/></svg>
-        Открыть Telegram
-      </a>
-      <div class="tg-waiting" style="margin-top:20px;">⏳ Ожидаем подтверждения<span id="tg-login-dots"></span></div>
-      <div style="margin-top:16px;font-size:12px;color:var(--text3);">
-        Не открывается автоматически?
-        <a href="${deepLink}" target="_blank" style="color:var(--accent);">Нажмите здесь</a>
-        или откройте @cheb_vpn21_bot и введите <code>/login ${code}</code>
+      <p>Отправьте команду в @cheb_vpn21_bot</p>
+      <div class="tg-code-box">
+        <div class="tg-code-label">Отправьте боту:</div>
+        <div class="tg-code-text">/login ${code}</div>
       </div>
+      <div class="tg-steps">
+        <strong>1.</strong> Откройте <a href="https://t.me/cheb_vpn21_bot" target="_blank" style="color:var(--accent);">@cheb_vpn21_bot</a> в Telegram<br>
+        <strong>2.</strong> Отправьте <strong>/login ${code}</strong><br>
+        <strong>3.</strong> Вернитесь — вход произойдёт сам
+      </div>
+      <div class="tg-waiting">⏳ Ожидаем<span id="tg-login-dots"></span></div>
     </div>
   `;
   _animateDots('tg-login-dots');
-
-  // Автооткрытие на мобильных (desktop лучше не форсировать)
-  if (/Android|iPhone|iPad/i.test(navigator.userAgent)) {
-    setTimeout(() => { window.location.href = deepLink; }, 300);
-  }
 
   if (_loginInterval) clearInterval(_loginInterval);
   _loginInterval = setInterval(async () => {
@@ -2071,7 +1950,7 @@ async function startTelegramLogin() {
         navigate('dashboard');
       }
     } catch(e) {}
-  }, 2000);
+  }, 4000);
   setTimeout(() => clearInterval(_loginInterval), 300000);
 }
 
@@ -2149,7 +2028,7 @@ async function sendCode(isResend) {
       body: JSON.stringify({ phone }),
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.detail || 'Ошибка отправки SMS');
+    if (!res.ok) throw new Error(data.detail || 'Ошибка отправки звонка');
     document.getElementById('phone-step1').style.display = 'none';
     document.getElementById('phone-step2').style.display = 'block';
     // Focus first code input
@@ -2166,9 +2045,7 @@ function startResendTimer() {
   let seconds = 60;
   const timerEl = document.getElementById('resend-timer');
   const resendBtn = document.getElementById('btn-resend');
-  const callWrap = document.getElementById('call-code-wrap');
   resendBtn.disabled = true;
-  if (callWrap) callWrap.style.display = 'none';
   if (_resendTimer) clearInterval(_resendTimer);
   _resendTimer = setInterval(() => {
     seconds--;
@@ -2177,35 +2054,8 @@ function startResendTimer() {
       clearInterval(_resendTimer);
       timerEl.textContent = '';
       resendBtn.disabled = false;
-      // Показываем кнопку звонка если SMS не пришло
-      if (callWrap) callWrap.style.display = 'block';
     }
   }, 1000);
-}
-
-async function requestCallCode() {
-  const btn = document.getElementById('btn-call-code');
-  const msg = document.getElementById('call-code-msg');
-  btn.disabled = true;
-  btn.textContent = 'Звоним...';
-  msg.style.display = 'none';
-  try {
-    const res = await fetch(API + '/api/auth/phone/call-code', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ phone: _phoneNormalized }),
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.detail || 'Ошибка');
-    btn.textContent = '📞 Звонок отправлен';
-    msg.textContent = 'Ожидайте звонок — последние 4 цифры номера и есть ваш код';
-    msg.style.display = 'block';
-  } catch (e) {
-    btn.disabled = false;
-    btn.textContent = '📞 Не пришло SMS? Позвонить мне';
-    msg.textContent = e.message;
-    msg.style.display = 'block';
-  }
 }
 
 function codeInput(el, idx) {
@@ -2240,12 +2090,10 @@ async function verifyCode() {
   btn.innerHTML = '<span class="spinner"></span>Проверяем...';
   try {
     const ref_code = localStorage.getItem('cheb_ref') || null;
-    const _promo_ph = localStorage.getItem('chebvpn_promo') || '';
-    const _utm_ph = _promo_ph === 'trial-b' ? 'flyer_qr' : (_promo_ph || null);
     const res = await fetch(API + '/api/auth/phone/verify', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ phone: _phoneNormalized, code, utm_source: _utm_ph }),
+      body: JSON.stringify({ phone: _phoneNormalized, code }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.detail || 'Неверный код');
@@ -2302,9 +2150,8 @@ async function loadDashboard() {
 
     currentUser = me;
     const displayName = me.phone || me.email;
-    const shortName = (me.display_name ? me.display_name.split(' ')[0] : null)
-      || (displayName.includes('@') ? displayName.split('@')[0] : displayName);
-    document.getElementById('nav-email').textContent = me.display_name || displayName;
+    const shortName = displayName.includes('@') ? displayName.split('@')[0] : displayName;
+    document.getElementById('nav-email').textContent = displayName;
     document.getElementById('dash-greeting').textContent = 'Привет, ' + shortName + '!';
     // Fill settings
     const settingsEmail = document.getElementById('settings-email');
@@ -2335,23 +2182,15 @@ function renderSubscription(sub, userId) {
     badge.textContent = 'Активна';
     detail.textContent = `Подписка активна · Истекает ${fmt} · осталось ${sub.days_left} дн.`;
 
-    const displayKey = sub.sub_link || sub.vless_config;
-    const keyLabel = sub.sub_link
-      ? 'Ссылка на подписку <span style="font-size:11px;color:var(--green);font-weight:600;">АВТО-ОБНОВЛЕНИЕ</span>'
-      : 'Ваш VLESS-ключ';
-    const keyHint = sub.sub_link
-      ? '<div style="font-size:12px;color:var(--text2);margin-top:6px;">Вставьте ссылку в приложение — конфиг обновится автоматически при смене сервера</div>'
-      : '';
-    if (displayKey) {
+    if (sub.vless_config) {
       configContent.innerHTML = `
         <div class="config-grid">
           <div class="qr-box" id="qr-box">
             <div class="qr-placeholder" id="qr-placeholder"></div>
           </div>
           <div class="config-info">
-            <div class="config-label">${keyLabel}</div>
-            <div class="config-string" id="vless-str">${escHtml(displayKey)}</div>
-            ${keyHint}
+            <div class="config-label">Ваш VLESS-ключ</div>
+            <div class="config-string" id="vless-str">${escHtml(sub.vless_config)}</div>
             <div class="config-actions">
               <button class="btn-action" onclick="copyConfig()">Скопировать</button>
             </div>
@@ -2364,7 +2203,7 @@ function renderSubscription(sub, userId) {
           </div>
         </div>
       `;
-      window._vlessConfig = displayKey;
+      window._vlessConfig = sub.vless_config;
       window._userId = userId;
       loadQrCode(userId);
     } else {

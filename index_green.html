@@ -1140,7 +1140,9 @@
       applySalePrices();
     } else if (promo === 'trial-a' || promo === 'trial-b') {
       showPromoTrialBanner();
-      // trial-b: пусть человек ознакомится с сайтом, кнопка в баннере
+      if (promo === 'trial-b') {
+        setTimeout(function() { window.location.href = '/dashboard#register'; }, 900);
+      }
     }
   })();
 
@@ -1179,8 +1181,7 @@
       "font-family:'Onest',sans-serif", 'font-size:13px',
       'color:#F0F4F8', 'line-height:1.4', 'margin-top:68px',
     ].join(';');
-    banner.innerHTML = '<span style="font-size:15px">🎁</span> Специальное предложение — <strong style="color:#00E584">7 дней бесплатно</strong> при регистрации&nbsp;&nbsp;' +
-      '<a href="/dashboard#register" style="display:inline-block;background:#00E584;color:#0A0F1A;font-weight:700;font-size:13px;padding:5px 14px;border-radius:8px;text-decoration:none;margin-left:4px;">Попробовать →</a>' +
+    banner.innerHTML = '<span style="font-size:15px">🎁</span> Специальное предложение — <strong style="color:#00E584">7 дней бесплатно</strong> при регистрации' +
       '<button onclick="this.parentElement.remove()" style="background:none;border:none;color:#4A5A6A;font-size:16px;cursor:pointer;margin-left:8px;vertical-align:middle;">×</button>';
     const nav = document.querySelector('nav');
     if (nav && nav.nextSibling) nav.parentNode.insertBefore(banner, nav.nextSibling);
@@ -1268,6 +1269,6 @@
     }
   }
 </script>
-<script src="/chat-widget.js?v=2" defer></script>
+<script src="/chat-widget.js" defer></script>
 </body>
 </html>

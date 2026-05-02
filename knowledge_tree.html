@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CHEB VPN — Дерево знаний</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 32px 16px 64px;
+    min-height: 100vh;
+  }
+  h1 {
+    text-align: center;
+    color: #58a6ff;
+    font-size: 1.4rem;
+    margin-bottom: 8px;
+    letter-spacing: 0.05em;
+  }
+  .subtitle {
+    text-align: center;
+    color: #6e7681;
+    font-size: 0.8rem;
+    margin-bottom: 40px;
+  }
+
+  /* TREE */
+  .tree { display: flex; flex-direction: column; align-items: center; gap: 0; }
+
+  /* ROOT */
+  .root {
+    background: linear-gradient(135deg, #1f6feb 0%, #388bfd 100%);
+    color: #fff;
+    padding: 14px 32px;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    box-shadow: 0 4px 24px #1f6feb55;
+    position: relative;
+  }
+
+  /* LEVELS */
+  .level {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    gap: 16px;
+    width: 100%;
+    flex-wrap: wrap;
+    padding: 0 8px;
+  }
+
+  /* CONNECTOR ROOT → L1 */
+  .connector-root {
+    width: 2px;
+    height: 32px;
+    background: #30363d;
+    margin: 0 auto;
+  }
+
+  /* BRANCH: vertical line + horizontal spread */
+  .branch-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    flex: 1;
+    min-width: 220px;
+    max-width: 340px;
+  }
+
+  .branch-line {
+    width: 2px;
+    height: 24px;
+    background: #30363d;
+  }
+
+  /* CARDS */
+  .card {
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 0.8rem;
+    line-height: 1.5;
+    border: 1px solid #30363d;
+    width: 100%;
+  }
+
+  /* L1 — критическое */
+  .l1 {
+    background: #161b22;
+    border-color: #f85149;
+    border-top: 3px solid #f85149;
+  }
+  .l1 .card-title {
+    color: #f85149;
+    font-weight: 700;
+    font-size: 0.85rem;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* L2 — важное */
+  .l2 {
+    background: #161b22;
+    border-color: #f0883e;
+    border-top: 3px solid #f0883e;
+  }
+  .l2 .card-title {
+    color: #f0883e;
+    font-weight: 700;
+    font-size: 0.85rem;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* L3 — полезное */
+  .l3 {
+    background: #161b22;
+    border-color: #3fb950;
+    border-top: 3px solid #3fb950;
+  }
+  .l3 .card-title {
+    color: #3fb950;
+    font-weight: 700;
+    font-size: 0.85rem;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* L4 — контекст */
+  .l4 {
+    background: #161b22;
+    border-color: #8b949e;
+    border-top: 2px solid #8b949e;
+  }
+  .l4 .card-title {
+    color: #8b949e;
+    font-weight: 700;
+    font-size: 0.8rem;
+    margin-bottom: 6px;
+  }
+
+  .item { color: #c9d1d9; padding: 2px 0; }
+  .item::before { content: "▸ "; color: #6e7681; }
+  .item code {
+    color: #79c0ff;
+    background: #0d1117;
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+  }
+  .item.warn::before { content: "⚠ "; color: #f0883e; }
+  .item.crit::before { content: "🔴 "; }
+  .item.ok::before { content: "✓ "; color: #3fb950; }
+
+  /* LEVEL LABELS */
+  .level-label {
+    text-align: center;
+    font-size: 0.7rem;
+    color: #6e7681;
+    margin: 20px 0 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+  }
+  .level-label span {
+    padding: 2px 12px;
+    border: 1px solid #21262d;
+    border-radius: 20px;
+  }
+
+  /* HORIZONTAL LINE between siblings in same level */
+  .h-line {
+    height: 2px;
+    background: #21262d;
+    width: 80%;
+    margin: 0 auto;
+  }
+
+  .sep { width: 2px; height: 20px; background: #21262d; margin: 0 auto; }
+
+  /* LEGEND */
+  .legend {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin: 40px 0 20px;
+    font-size: 0.75rem;
+    color: #8b949e;
+  }
+  .legend-item { display: flex; align-items: center; gap: 6px; }
+  .legend-dot {
+    width: 10px; height: 10px; border-radius: 2px;
+  }
+
+  .updated { text-align: center; color: #6e7681; font-size: 0.7rem; margin-top: 32px; }
+</style>
+</head>
+<body>
+
+<h1>🌲 CHEB VPN — Дерево знаний</h1>
+<p class="subtitle">Иерархия ликбезов · сверху вниз по критичности · 26.04.2026</p>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:#f85149"></div> Критическое — без этого нельзя работать</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#f0883e"></div> Важное — нужно для разработки</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#3fb950"></div> Полезное — ускоряет понимание</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#8b949e"></div> Контекст — справочно</div>
+</div>
+
+<div class="tree">
+
+  <!-- ROOT -->
+  <div class="root">🛡 CHEB VPN Engineering</div>
+  <div class="connector-root"></div>
+
+  <!-- LEVEL 1: КРИТИЧЕСКОЕ -->
+  <div class="level-label"><span>🔴 Уровень 1 — Критическое (нельзя работать без знания)</span></div>
+  <div class="level">
+
+    <div class="branch-wrap">
+      <div class="branch-line"></div>
+      <div class="card l1">
+        <div class="card-title">🖥 Серверная инфраструктура</div>
+        <div class="item crit">main: <code>144.124.228.219</code> Amsterdam AS216071</div>
+        <div class="item crit">Gemini: <code>89.124.94.166</code> <b>тот же ASN</b> — риск!</div>
+        <div class="item">NY: <code>50.114.74.47</code> — нет автосинхронизации</div>
+        <div class="item">RAM main: 1.9 GB (74% занято)</div>
+        <div class="item warn">Gemini disk: 8.3/9.8 GB (89% — критично!)</div>
+        <div class="item">Домен: <code>chebvpn.ru</code> → nginx → сервисы</div>
+      </div>
+    </div>
+
+    <div class="branch-wrap">
+      <div class="branch-line"></div>
+      <div class="card l1">
+        <div class="card-title">📡 VPN-стек: xui + xray + VLESS</div>
+        <div class="item"><code>x-ui.service</code> — веб-панель управления (порт 2053)</div>
+        <div class="item"><code>xray-core</code> — обрабатывает VPN-трафик</div>
+        <div class="item">Протокол: VLESS + Reality (TLS imitation)</div>
+        <div class="item">main: <code>INBOUND_ID=2</code></div>
+        <div class="item">Gemini: <code>INBOUND_ID=1</code></div>
+        <div class="item">Ключи: <code>REALITY_PUBLIC_KEY</code>, <code>SHORT_ID</code>, <code>SNI</code></div>
+        <div class="item ok">Singbox multi-server + RU bypass встроен</div>
+      </div>
+    </div>
+
+    <div class="branch-wrap">
+      <div class="branch-line"></div>
+      <div class="card l1">
+        <div class="card-title">🤖 Архитектура ботов</div>
+        <div class="item"><code>vpn_bot.service</code> → <code>/root/vpn_bot/bot.py</code></div>
+        <div class="item">↳ aiogram, XUIClient, activate_subscription</div>
+        <div class="item"><code>chebvpn-hitl.service</code> → <code>/root/hitl_agent/</code></div>
+        <div class="item">↳ ops, AI-решения, @tru_vpn_bot</div>
+        <div class="item"><code>webhook_server.py</code> — ЮKassa + реферальная логика</div>
+        <div class="item">ADMIN_IDS: <code>859020176</code></div>
+      </div>
+    </div>
+
+    <div class="branch-wrap">
+      <div class="branch-line"></div>
+      <div class="card l1">
+        <div class="card-title">💳 Система оплат</div>
+        <div class="item"><code>webhook_server.py</code> — принимает POST от ЮKassa</div>
+        <div class="item"><code>save_payment_method()</code> → привязка карты</div>
+        <div class="item"><code>get_users_for_autopay()</code> → рекуррентные списания</div>
+        <div class="item">Telegram Stars: <code>pre_checkout_query</code> → <code>successful_payment</code></div>
+        <div class="item warn">Webhook: входящий POST не верифицируется IP/HMAC!</div>
+        <div class="item ok">Idempotency частично: payment_id в БД</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- LEVEL 2: ВАЖНОЕ -->
+  <div class="level-label"><span>🟠 Уровень 2 — Важное (нужно для разработки)</span></div>
+  <div class="level">
+
+    <div class="branch-wrap">
+      <div class="branch-line"></div>
+      <div class="card l2">
+        <div class="card-title">🗄 Базы данных</div>
+        <div class="item"><code>vpn_bot.db</code> — users, payments (~290 users)</div>
+        <div class="item">↳ колонки: sub_id, server_id, beta_tester, notified_autopay</div>
+        <div class="item warn">init_db не создаёт все колонки! (БАГ-2/3)</div>
+        <div class="item"><code>chebvpn.db</code> — сайт (subscriptions, payments)</div>
+        <div class="item"><code>workspace_tasks.db</code> — kanban задачи + AI-история</div>
+        <div class="item"><code>proposals.db</code> — hitl propose/reject</div>
+        <div class="item warn">Бэкап БД не настроен в cron!</div>
+      </div>
+    </div>
+
+    <div class="branch-wrap">
+      <div class="branch-line"></div>
+      <div class="card l2">
+        <div class="card-title">🔗 Генерация подписок</div>
+        <div class="item"><code>sub_generator.py</code> (541 строк) — aiohttp сервер</div>
+        <div class="item"><code>/sub-smart</code> — авто-выбор лучшего протокола</div>
+        <div class="item"><code>/sub-xray</code> — VLESS Reality конфиг</div>
+        <div class="item"><code>/sub-singbox</code> — Singbox + urltest + RU bypass</div>
+        <div class="item"><code>servers</code> таблица: ip, port, public_key, sni, inbound_id</div>
+        <div class="item ok">RU bypass: полный список доменов + IP</div>
+        <div class="item warn">/sub-xray не мультисерверный (БАГ-8)</div>
+      </div>
+    </div>
+
+    <div class="branch-wrap">
+      <div class="branch-line"></div>
+      <div class="card l2">
+        <div class="card-title">🔄 Синхронизация серверов</div>
+        <div class="item"><code>sync_gemini.py</code> — cron каждые 30 мин</div>
+        <div class="item">↳ SSH → скачать x-ui SQLite → парсить regex → patch → restart</div>
+        <div class="item warn">Хрупкий механизм: regex-парсинг JSON x-ui</div>
+        <div class="item warn">Нет алерта при ошибке sync!</div>
+        <div class="item crit">NY: синхронизация НЕ автоматизирована</div>
+        <div class="item ok">Исправлен fallback return (tuple, сессия 26.04)</div>
+      </div>
+    </div>
+
+    <div class="branch-wrap">
+      <div class="branch-line"></div>
+      <div class="card l2">
+        <div class="card-title">📋 Workspace и задачи</div>
+        <div class="item"><code>task list</code> — все задачи (todo/active/done)</div>
+        <div class="item"><code>task start "название"</code> → status=active</div>
+        <div class="item"><code>task done "название"</code> → status=done</div>
+        <div class="item"><code>task note "название" "текст"</code> → история</div>
+        <div class="item"><code>task find "xui"</code> → поиск</div>
+        <div class="item">AI-история: <code>ai_history</code> таблица в workspace_tasks.db</div>
+        <div class="item">Канбан: <code>chebvpn.ru/map.html</code></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- LEVEL 3: ПОЛЕЗНОЕ -->
+  <div class="level-label"><span>🟢 Уровень 3 — Полезное (ускоряет понимание)</span></div>
+  <div class="level">
+
+    <div class="branch-wrap">
+      <div class="branch-line"></div>
+      <div class="card l3">
+        <div class="card-title">🛒 Тарифы и бизнес-логика</div>
+        <div class="item"><code>vpn_tariffs.py</code> — тарифная сетка</div>
+        <div class="item">1м = 159₽ / 30д</div>
+        <div class="item">3м = 387₽ / 90д</div>
+        <div class="item">6м = 699₽ / 180д</div>
+        <div class="item">12м = 1199₽ / 365д</div>
+        <div class="item ok">Winback: через 5д после истечения → +7д бесплатно</div>
+        <div class="item ok">Апсейл: на 14-й день после подписки</div>
+        <div class="item ok">Реферал: +7д при регистрации + +7д при оплате</div>
+      </div>
+    </div>
+
+    <div class="branch-wrap">
+      <div class="branch-line"></div>
+      <div class="card l3">
+        <div class="card-title">🤖 AI-поддержка (Алекс)</div>
+        <div class="item">Модель: <code>claude-haiku-4-5</code> через Anthropic API</div>
+        <div class="item">Fallback: OpenRouter если Anthropic недоступен</div>
+        <div class="item">Rate limiting: 8 req/60с per user, 200 req/ч global</div>
+        <div class="item">Эскалация к оператору: тикеты через ops_bot</div>
+        <div class="item"><code>support_history</code>, <code>alex_history</code> — только в RAM</div>
+        <div class="item">HITL-агент: cron 9:00 + 10:00</div>
+      </div>
+    </div>
+
+    <div class="branch-wrap">
+      <div class="branch-line"></div>
+      <div class="card l3">
+        <div class="card-title">🌐 Сайт и API</div>
+        <div class="item"><code>/var/www/chebvpn/</code> — фронтенд (index.html)</div>
+        <div class="item"><code>/var/www/chebvpn-backend/</code> — FastAPI (port 8000)</div>
+        <div class="item"><code>chebvpn.service</code> → uvicorn</div>
+        <div class="item"><code>/api/internal/sync-subscription</code> — синхронизация бот↔сайт</div>
+        <div class="item"><code>/dashboard.html</code> — личный кабинет пользователя</div>
+        <div class="item warn">SEO мета-теги отсутствуют</div>
+      </div>
+    </div>
+
+    <div class="branch-wrap">
+      <div class="branch-line"></div>
+      <div class="card l3">
+        <div class="card-title">📰 Новостной агент</div>
+        <div class="item">Отдельный сервис <code>news_agent</code></div>
+        <div class="item">Автопубликация новостей в Telegram-канал</div>
+        <div class="item">Парсинг RSS → Claude → публикация</div>
+        <div class="item ok">Работает независимо от vpn_bot</div>
+        <div class="item">Канал: @chebvpn_news (цель: 2 поста/нед)</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- LEVEL 4: КОНТЕКСТ -->
+  <div class="level-label"><span>⚫ Уровень 4 — Контекст (справочно)</span></div>
+  <div class="level">
+
+    <div class="branch-wrap">
+      <div class="branch-line"></div>
+      <div class="card l4">
+        <div class="card-title">🔑 Ключевые пути</div>
+        <div class="item"><code>/root/vpn_bot/</code> — основной бот</div>
+        <div class="item"><code>/root/hitl_agent/</code> — HITL оркестратор</div>
+        <div class="item"><code>/root/terminal_server/</code> — веб-терминал</div>
+        <div class="item"><code>/var/www/chebvpn*/</code> — сайт + backend</div>
+        <div class="item"><code>/root/workspace_tasks.db</code> — задачи</div>
+        <div class="item">Env переменные: <code>/root/vpn_bot/.env</code></div>
+      </div>
+    </div>
+
+    <div class="branch-wrap">
+      <div class="branch-line"></div>
+      <div class="card l4">
+        <div class="card-title">🚨 DR-план (Disaster Recovery)</div>
+        <div class="item warn">Бэкапа БД нет — задача открыта</div>
+        <div class="item">Восстановление: <code>vpn_bot.db</code> → новый сервер</div>
+        <div class="item">init_db: пересоздаёт таблицы (не все колонки!)</div>
+        <div class="item">xray config: ручной перенос из x-ui backup</div>
+        <div class="item">Секреты: в <code>.env</code> (не в коде — задача sec_secrets)</div>
+        <div class="item">Systemd units: vpn_bot / chebvpn / chebvpn-hitl</div>
+      </div>
+    </div>
+
+    <div class="branch-wrap">
+      <div class="branch-line"></div>
+      <div class="card l4">
+        <div class="card-title">📊 Метрики и мониторинг</div>
+        <div class="item">~290 пользователей всего, ~140 активных</div>
+        <div class="item">~101 никогда не платили</div>
+        <div class="item">189 клиентов на Gemini, 188 на NY</div>
+        <div class="item crit">Нет UptimeRobot / алертов — задача открыта</div>
+        <div class="item warn">Падение узнаём по жалобам пользователей</div>
+        <div class="item">Аналитика трафика: x-ui dashboard (порт 2053)</div>
+      </div>
+    </div>
+
+    <div class="branch-wrap">
+      <div class="branch-line"></div>
+      <div class="card l4">
+        <div class="card-title">🔒 Безопасность (известные риски)</div>
+        <div class="item crit">sub_id: random.choices вместо secrets.token_hex</div>
+        <div class="item crit">SQL injection: update_user_flag без allowlist</div>
+        <div class="item warn">X-Bot-Secret захардкожен в bot.py</div>
+        <div class="item warn">SSH пароли не сменены на Gemini/NY</div>
+        <div class="item warn">Webhook ЮKassa без проверки IP</div>
+        <div class="item">xui_api: ssl=False (self-signed сертификат)</div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<p class="updated">Обновлено: 26.04.2026 · Аудит 5 агентов · <a href="/map.html" style="color:#58a6ff">→ Канбан</a></p>
+
+</body>
+</html>

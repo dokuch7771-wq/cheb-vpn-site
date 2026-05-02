@@ -1337,7 +1337,7 @@ function renderKanban(){
   const branchFilter=document.getElementById('kb-branch-filter').value;
   const searchQ=(document.getElementById('kb-search').value||'').toLowerCase();
 
-  let tasks=allTasksFlat(D).filter(t=>!t._notInDB);
+  let tasks=allTasksFlat(D);
   if(branchFilter) tasks=tasks.filter(t=>t.branch===branchFilter);
   if(searchQ) tasks=tasks.filter(t=>t.l.toLowerCase().includes(searchQ)||(t.d||'').toLowerCase().includes(searchQ));
   tasks=tasks.filter(t=>activeFilters.has(t.s));
@@ -2381,11 +2381,6 @@ async function loadTasksFromAPI() {
     }));
     // Регистрируем внешние задачи тоже
     _apiExtraTasks.forEach(t => { _taskById[t._apiId || t.id || t.l] = t; });
-    // Помечаем задачи из дерева D которых нет в БД — скрываем в канбане
-    (function markDeleted(node){
-      (node.tasks||[]).forEach(t => { t._notInDB = !t._apiId; });
-      (node.children||[]).forEach(markDeleted);
-    })(D);
     renderMap();
     if (document.getElementById('kb-overlay').classList.contains('open')) renderKanban();
   } catch(e) { loadTasksLocal(); renderMap(); }

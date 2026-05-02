@@ -872,16 +872,6 @@ function taskCounts(node){
     (n.children||[]).forEach(w);
   }
   w(node);
-  // Учитываем API-задачи (_apiExtraTasks) для этой ветви
-  const branchName=node.label.replace('\n',' ');
-  _apiExtraTasks.forEach(t=>{
-    if(t.branch===branchName){
-      if(t.s==='urgent')c.u++;
-      else if(t.s==='active'||t.s==='inprogress')c.a++;
-      else if(t.s==='done')c.d++;
-      else c.t++;
-    }
-  });
   return c;
 }
 
@@ -1330,14 +1320,12 @@ function setView(v){
 
 function pLabel(p){return{high:'Высокий',medium:'Средний',low:'Низкий'}[p]||'';}
 function pClass(p){return{high:'ph',medium:'pm',low:'pl'}[p]||'';}
-function esc(s){return s?String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'):'';}
-
 
 function renderKanban(){
   const branchFilter=document.getElementById('kb-branch-filter').value;
   const searchQ=(document.getElementById('kb-search').value||'').toLowerCase();
 
-  let tasks=allTasksFlat(D).filter(t=>!t._notInDB);
+  let tasks=allTasksFlat(D);
   if(branchFilter) tasks=tasks.filter(t=>t.branch===branchFilter);
   if(searchQ) tasks=tasks.filter(t=>t.l.toLowerCase().includes(searchQ)||(t.d||'').toLowerCase().includes(searchQ));
   tasks=tasks.filter(t=>activeFilters.has(t.s));
@@ -1356,12 +1344,12 @@ function renderKanban(){
         :filtered.map(t=>{
           const key=(t._apiId||t.id||t.l||'').replace(/'/g,"\\'");
           return`<div class="kcard" data-id="${t.id||''}" data-status="${t.s}" onclick="openTaskByKey('${key}')">
-            <div class="kcard-title">${esc(t.l)}</div>
+            <div class="kcard-title">${t.l}</div>
             <div class="kcard-meta">
-              <span class="kcard-branch" style="border-color:${t.branchColor}33;color:${t.branchColor}99">${esc(t.branch)}</span>
+              <span class="kcard-branch" style="border-color:${t.branchColor}33;color:${t.branchColor}99">${t.branch}</span>
               ${t.p?`<span class="pb ${pClass(t.p)}">${pLabel(t.p)}</span>`:''}
             </div>
-            ${t.d?`<div class="kcard-desc">${esc(t.d.slice(0,120))}${t.d.length>120?'…':''}</div>`:''}
+            ${t.d?`<div class="kcard-desc">${t.d.slice(0,120)}${t.d.length>120?'…':''}</div>`:''}
           </div>`;}).join('');
     });
     initKanbanDnD();
@@ -1376,11 +1364,11 @@ function renderKanban(){
         return`<div class="lcard" onclick="openTaskByKey('${key}')">
           <div class="lcard-status">${statusIcon(t.s)}</div>
           <div class="lcard-body">
-            <div class="lcard-title">${esc(t.l)}</div>
+            <div class="lcard-title">${t.l}</div>
             <div class="lcard-meta">
-              <span class="lcard-branch" style="color:${t.branchColor}aa">${esc(t.branch)}</span>
+              <span class="lcard-branch" style="color:${t.branchColor}aa">${t.branch}</span>
               ${t.p?`<span class="pb ${pClass(t.p)}">${pLabel(t.p)}</span>`:''}
-              ${t.d?`<span style="font-size:10px;color:var(--text3)">· ${esc(t.d.slice(0,60))}${t.d.length>60?'…':''}</span>`:''}
+              ${t.d?`<span style="font-size:10px;color:var(--text3)">· ${t.d.slice(0,60)}${t.d.length>60?'…':''}</span>`:''}
             </div>
           </div>
         </div>`;}).join('');
@@ -2339,7 +2327,7 @@ let _apiIdByLocalId = {};
 let _apiExtraTasks = [];
 
 async function loadTasksFromAPI() {
-  const tok = apiToken() || 'XzP0S-alQur5ex_wXyUGpQhKrwE82-bJCJpFNhVEw70';
+  const tok = apiToken();
   if (!tok) { loadTasksLocal(); renderMap(); return; }
   try {
     const r = await fetch(`${WS_API}/tasks`, {headers:{'X-Workspace-Token': tok}});
@@ -2373,7 +2361,7 @@ async function loadTasksFromAPI() {
       (node.children||[]).forEach(collectLabels);
     })(D);
     // Задачи из API которых нет в дереве — добавляем как "внешние"
-    _apiExtraTasks = tasks.filter(t => !knownLabels.has(t.label)).map(t => ({
+    _apiExtraTasks = tasks.filter(t => !knownLabels.has(t.label) && t.status !== 'done').map(t => ({
       id: t.id, _apiId: t.id,
       l: t.label, s: t.status, p: t.priority,
       d: t.description||'',
@@ -2381,11 +2369,6 @@ async function loadTasksFromAPI() {
     }));
     // Регистрируем внешние задачи тоже
     _apiExtraTasks.forEach(t => { _taskById[t._apiId || t.id || t.l] = t; });
-    // Помечаем задачи из дерева D которых нет в БД — скрываем в канбане
-    (function markDeleted(node){
-      (node.tasks||[]).forEach(t => { t._notInDB = !t._apiId; });
-      (node.children||[]).forEach(markDeleted);
-    })(D);
     renderMap();
     if (document.getElementById('kb-overlay').classList.contains('open')) renderKanban();
   } catch(e) { loadTasksLocal(); renderMap(); }
@@ -2465,7 +2448,6 @@ function copyTaskPermalink() {
 loadTasksFromAPI()
   .then(_checkPermalink)
   .catch(()=>{ loadTasksLocal(); renderMap(); });
-setInterval(()=>loadTasksFromAPI().catch(()=>{}), 30000);
 window.addEventListener('resize',renderMap);
 // Кнопка «Назад» браузера закрывает модал
 window.addEventListener('popstate', (e) => {
