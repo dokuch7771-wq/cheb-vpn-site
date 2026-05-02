@@ -948,8 +948,8 @@
         <div id="phone-step2" style="display:none">
           <div style="background:rgba(0,212,255,0.07);border:1px solid rgba(0,212,255,0.2);border-radius:10px;padding:12px 16px;margin-bottom:20px;text-align:center;">
             <div style="font-size:22px;margin-bottom:6px;">💬</div>
-            <div style="font-size:14px;color:var(--text);font-weight:600;margin-bottom:4px;">SMS отправлено</div>
-            <div style="font-size:13px;color:var(--text2);">Введите 4-значный код из сообщения</div>
+            <div style="font-size:14px;color:var(--text);font-weight:600;margin-bottom:4px;">Ожидайте звонок</div>
+            <div style="font-size:13px;color:var(--text2);">Введите 4-значный код (последние 4 цифры входящего номера)</div>
           </div>
           <div class="code-input" id="code-boxes">
             <input type="tel" maxlength="1" inputmode="numeric" oninput="codeInput(this,0)" onkeydown="codeKey(event,0)">
@@ -959,11 +959,11 @@
           </div>
           <div class="resend-wrap">
             <span id="resend-timer"></span>
-            <button class="btn-resend" id="btn-resend" onclick="sendCode(true)" disabled>Отправить SMS ещё раз</button>
+            <button class="btn-resend" id="btn-resend" onclick="sendCode(true)" disabled>Позвонить ещё раз</button>
           </div>
           <div id="call-code-wrap" style="display:none;text-align:center;margin-top:8px;">
             <button id="btn-call-code" onclick="requestCallCode()" style="background:none;border:1px solid rgba(0,212,255,0.3);border-radius:8px;color:var(--accent);font-family:var(--font-b);font-size:13px;padding:8px 16px;cursor:pointer;width:100%;">
-              📞 Не пришло SMS? Позвонить мне
+              📞 Не поступил звонок? Повторить звонок
             </button>
             <div id="call-code-msg" style="font-size:12px;color:var(--text2);margin-top:6px;display:none;"></div>
           </div>
@@ -2203,7 +2203,7 @@ async function requestCallCode() {
     msg.style.display = 'block';
   } catch (e) {
     btn.disabled = false;
-    btn.textContent = '📞 Не пришло SMS? Позвонить мне';
+    btn.textContent = '📞 Не поступил звонок? Повторить звонок';
     msg.textContent = e.message;
     msg.style.display = 'block';
   }
