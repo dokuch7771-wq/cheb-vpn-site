@@ -2150,7 +2150,7 @@ async function sendCode(isResend) {
       body: JSON.stringify({ phone }),
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.detail || 'Ошибка отправки SMS');
+    if (!res.ok) throw new Error(data.detail || 'Ошибка отправки кода');
     document.getElementById('phone-step1').style.display = 'none';
     document.getElementById('phone-step2').style.display = 'block';
     // Focus first code input
