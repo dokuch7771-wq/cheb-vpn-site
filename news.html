@@ -718,6 +718,7 @@
     <li><a href="#pricing">Тарифы</a></li>
     <li><a href="#install">Установка</a></li>
     <li><a href="#faq">FAQ</a></li>
+    <li><a href="/news" class="nav-link active">Новости</a></li>
   </ul>
   <div class="nav-actions">
     <a href="/dashboard.html#login" class="btn btn-ghost" id="nav-login">Войти</a>
@@ -725,42 +726,103 @@
   </div>
 <a href="/news" class="nav-link active">Новости</a>
   </nav>
-  <main class="container" style="padding-top: 100px; min-height: 80vh;">
-    <h1 style="text-align: center; margin-bottom: 2rem;">Новости и Статьи</h1>
-    <p style="text-align: center; color: var(--text2); margin-bottom: 3rem;">Последние обновления, инструкции и советы по безопасности.</p>
+  
+  <main class="container" style="padding-top: 100px; min-height: 80vh; max-width: 1200px; margin: 0 auto; padding-bottom: 60px;">
     
-    <div style="display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));">
-        
-        <!-- Post 1 -->
-        <article style="background: var(--surface); padding: 24px; border-radius: 16px; border: 1px solid var(--border);">
-            <div style="font-size: 0.8rem; color: var(--accent); margin-bottom: 8px;">2 Мая 2026</div>
-            <h2 style="font-size: 1.25rem; margin-bottom: 12px;">Как VLESS помогает обходить блокировки</h2>
-            <p style="color: var(--text2); font-size: 0.95rem; margin-bottom: 16px;">Разбираем, почему протокол VLESS с технологией XTLS-Reality на данный момент является самым надежным решением для свободного интернета в РФ.</p>
-            <a href="https://t.me/cheb_vpn_news" target="_blank" style="color: var(--accent); text-decoration: none; font-weight: 500;">Читать в Telegram →</a>
-        </article>
+    <header style="margin-bottom: 3rem; text-align: center;">
+      <h1 style="font-family: var(--font-h); font-size: 2.5rem; margin-bottom: 0.5rem; color: var(--text);">Журнал <span style="color: var(--accent);">CHEB VPN</span></h1>
+      <p style="color: var(--text2); font-size: 1.1rem; max-width: 600px; margin: 0 auto;">Инсайды о технологиях обхода блокировок, новости приватности и инструкции по настройке безопасного интернета.</p>
+    </header>
 
-        <!-- Post 2 -->
-        <article style="background: var(--surface); padding: 24px; border-radius: 16px; border: 1px solid var(--border);">
-            <div style="font-size: 0.8rem; color: var(--accent); margin-bottom: 8px;">15 Апреля 2026</div>
-            <h2 style="font-size: 1.25rem; margin-bottom: 12px;">Настройка VPN на iOS (iPhone)</h2>
-            <p style="color: var(--text2); font-size: 0.95rem; margin-bottom: 16px;">Подробная инструкция по настройке быстрого доступа через приложения V2RayTun и FoXray на устройствах Apple.</p>
-            <a href="https://t.me/cheb_vpn_news" target="_blank" style="color: var(--accent); text-decoration: none; font-weight: 500;">Читать в Telegram →</a>
-        </article>
-        
-        <!-- Post 3 -->
-        <article style="background: var(--surface); padding: 24px; border-radius: 16px; border: 1px solid var(--border);">
-            <div style="font-size: 0.8rem; color: var(--accent); margin-bottom: 8px;">1 Апреля 2026</div>
-            <h2 style="font-size: 1.25rem; margin-bottom: 12px;">Запуск CHEB VPN!</h2>
-            <p style="color: var(--text2); font-size: 0.95rem; margin-bottom: 16px;">Мы запустили наш сервис. Высокие скорости, надежные серверы и уважение к чувашским традициям. Первые 7 дней бесплатно.</p>
-            <a href="https://t.me/cheb_vpn_news" target="_blank" style="color: var(--accent); text-decoration: none; font-weight: 500;">Читать в Telegram →</a>
-        </article>
-
+    <div style="display: grid; grid-template-columns: 1fr; gap: 30px; margin-bottom: 40px;">
+      <!-- Featured Post -->
+      <article style="background: var(--surface); border-radius: 20px; overflow: hidden; display: flex; flex-direction: column; border: 1px solid var(--border); box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+        <div style="padding: 40px; display: flex; flex-direction: column; justify-content: center; position: relative;">
+          <div style="position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: linear-gradient(90deg, var(--accent), var(--green));"></div>
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+            <span style="background: rgba(0,212,255,0.1); color: var(--accent); padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">ГЛАВНОЕ</span>
+            <span style="color: var(--text3); font-size: 0.85rem;">2 Мая 2026</span>
+          </div>
+          <h2 style="font-family: var(--font-h); font-size: 2rem; margin-bottom: 16px; line-height: 1.3;">Как протокол VLESS помогает оставаться онлайн, когда всё блокируют</h2>
+          <p style="color: var(--text2); font-size: 1.05rem; margin-bottom: 24px; line-height: 1.6; max-width: 800px;">
+            Разбираем под капотом технологию XTLS-Reality. Почему стандартный OpenVPN и WireGuard больше не спасают, и как новый стандарт обеспечивает стабильное соединение без потери скорости.
+          </p>
+          <div>
+            <a href="https://t.me/cheb_vpn_news" target="_blank" class="btn" style="background: var(--accent); color: var(--bg); padding: 12px 24px; border-radius: 12px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+              Читать статью полностью
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+            </a>
+          </div>
+        </div>
+      </article>
     </div>
-    
-    <div style="text-align: center; margin-top: 40px;">
-        <a href="https://t.me/cheb_vpn_news" target="_blank" class="btn btn-primary" style="display: inline-block; text-decoration: none;">Больше новостей в нашем канале</a>
+
+    <!-- Two column layout for normal posts and sidebar -->
+    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 30px;">
+      
+      <!-- Main Feed -->
+      <div style="display: flex; flex-direction: column; gap: 24px;">
+        <h3 style="font-family: var(--font-h); font-size: 1.5rem; margin-bottom: 8px; padding-bottom: 12px; border-bottom: 1px solid var(--border);">Свежие публикации</h3>
+        
+        <!-- Post -->
+        <article style="padding: 24px 0; border-bottom: 1px solid var(--border2); display: flex; flex-direction: column; gap: 12px;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="color: var(--text3); font-size: 0.85rem;">15 Апреля 2026</span>
+            <span style="color: var(--text3); font-size: 0.85rem;">•</span>
+            <span style="color: var(--green); font-size: 0.85rem; font-weight: 600;">ИНСТРУКЦИИ</span>
+          </div>
+          <h2 style="font-size: 1.4rem; font-weight: 600; cursor: pointer;">
+            <a href="https://t.me/cheb_vpn_news" target="_blank" style="color: var(--text); text-decoration: none; transition: color 0.2s;">Настройка VLESS на iOS (iPhone) за 2 минуты</a>
+          </h2>
+          <p style="color: var(--text2); font-size: 1rem; line-height: 1.6;">
+            Пошаговое руководство с картинками. Узнайте, как добавить подписку в приложения V2RayTun или FoXray и забыть о проблемах с доступом к любимым сервисам.
+          </p>
+        </article>
+
+        <!-- Post -->
+        <article style="padding: 24px 0; border-bottom: 1px solid var(--border2); display: flex; flex-direction: column; gap: 12px;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="color: var(--text3); font-size: 0.85rem;">1 Апреля 2026</span>
+            <span style="color: var(--text3); font-size: 0.85rem;">•</span>
+            <span style="color: var(--accent); font-size: 0.85rem; font-weight: 600;">НОВОСТИ СЕРВИСА</span>
+          </div>
+          <h2 style="font-size: 1.4rem; font-weight: 600; cursor: pointer;">
+            <a href="https://t.me/cheb_vpn_news" target="_blank" style="color: var(--text); text-decoration: none; transition: color 0.2s;">Официальный запуск CHEB VPN!</a>
+          </h2>
+          <p style="color: var(--text2); font-size: 1rem; line-height: 1.6;">
+            Мы открываем публичный доступ к нашей сети. Высокие скорости, сервера без логов и 7 дней бесплатного теста для всех новых пользователей.
+          </p>
+        </article>
+      </div>
+
+      <!-- Sidebar -->
+      <aside style="display: flex; flex-direction: column; gap: 32px;">
+        <!-- Telegram Widget -->
+        <div style="background: var(--surface); padding: 24px; border-radius: 16px; border: 1px solid var(--border);">
+          <h4 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 16px; color: var(--text);">Telegram Канал</h4>
+          <p style="color: var(--text2); font-size: 0.95rem; margin-bottom: 20px;">
+            Читайте эти и другие новости первыми прямо в мессенджере. Мы публикуем важные анонсы и раздаем промокоды.
+          </p>
+          <a href="https://t.me/cheb_vpn_news" target="_blank" class="btn" style="width: 100%; display: flex; justify-content: center; background: rgba(0,212,255,0.1); color: var(--accent); border: 1px solid rgba(0,212,255,0.2); padding: 10px; border-radius: 8px; text-decoration: none; font-weight: 600;">
+            Подписаться
+          </a>
+        </div>
+        
+        <!-- Tags/Categories -->
+        <div style="background: var(--bg2); padding: 24px; border-radius: 16px; border: 1px solid var(--border);">
+          <h4 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 16px; color: var(--text);">Рубрики</h4>
+          <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+            <span style="background: var(--surface); color: var(--text2); padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; cursor: pointer; border: 1px solid var(--border);">Технологии</span>
+            <span style="background: var(--surface); color: var(--text2); padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; cursor: pointer; border: 1px solid var(--border);">Инструкции</span>
+            <span style="background: var(--surface); color: var(--text2); padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; cursor: pointer; border: 1px solid var(--border);">Безопасность</span>
+            <span style="background: var(--surface); color: var(--text2); padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; cursor: pointer; border: 1px solid var(--border);">Новости</span>
+          </div>
+        </div>
+      </aside>
+
     </div>
   </main>
+
 <footer>
   <a href="#" class="footer-logo">CHEB VPN</a>
   <div class="footer-links">
