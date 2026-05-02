@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Disallow: /map.html
+Disallow: /api/
+Disallow: /auth/
+Disallow: /sub-smart/
+Disallow: /sub-singbox/
+Disallow: /sub-xray/
+
+Sitemap: https://chebvpn.ru/sitemap.xml
